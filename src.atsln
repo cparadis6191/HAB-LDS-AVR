@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "HAB-LDS-AVR", "HAB-LDS-AVR\HAB-LDS-AVR.cproj", "{BC1A4B66-2809-45E9-9952-490C69C7E467}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC1A4B66-2809-45E9-9952-490C69C7E467}.Debug|AVR.ActiveCfg = Debug|AVR
+		{BC1A4B66-2809-45E9-9952-490C69C7E467}.Debug|AVR.Build.0 = Debug|AVR
+		{BC1A4B66-2809-45E9-9952-490C69C7E467}.Release|AVR.ActiveCfg = Release|AVR
+		{BC1A4B66-2809-45E9-9952-490C69C7E467}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
