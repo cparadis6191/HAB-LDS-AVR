@@ -14,9 +14,9 @@ void init_UART( void ) {
 	// Set the mode of operation
 
 	// Set character size to 8-bits
-	USARTC0.CTRLC |= ( 1 << USART_CHSIZE0 );
-	USARTC0.CTRLC |= ( 1 << USART_CHSIZE1 );
-	USARTC0.CTRLC &= ~( 1 << USART_CHSIZE2 );
+	USARTC0.CTRLC |= ( 1 << USART_CHSIZE0_bp );
+	USARTC0.CTRLC |= ( 1 << USART_CHSIZE1_bp );
+	USARTC0.CTRLC &= ~( 1 << USART_CHSIZE2_bp );
 
 	// Enable the transmitter or the receiver
 
