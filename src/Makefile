@@ -1,12 +1,11 @@
 CC=avr-gcc
-CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atxmega128a4u
+CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atxmega32a4
 OBJ2HEX=avr-objcopy
 #UISP=/usr/local/bin/uisp
 TARGET=light_direction_sensor
 ADFLAGS=-p m8 -c dragon_pdi -P usb
-
 # Added this
-OBJS=light_direction_sensor.o
+OBJS=light_direction_sensor.o lcd.o sd.o adc.o bluetooth.o
 
 .PHONY: fuses prog erase clean
 
@@ -25,6 +24,12 @@ ${TARGET}.obj : ${OBJS}
 
 %.eeprom : %.obj
 	${OBJ2HEX} -j .eeprom -O ihex $< $@
+
+light_direction_sensor.o : light_direction_sensor.h
+lcd.o : lcd.h
+adc.o : adc.h
+sd.o : sd.h
+bluetooth.o : bluetooth.h
 
 erase :
 	avrdude ${ADFLAGS} -E noreset -e
