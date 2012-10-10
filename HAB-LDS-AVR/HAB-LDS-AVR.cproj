@@ -81,41 +81,47 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adc.c">
+    <Compile Include="src\adc.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="adc.h">
+    <Compile Include="src\adc.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="bluetooth.c">
+    <Compile Include="src\bluetooth.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="bluetooth.h">
+    <Compile Include="src\bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="HAB-LDS-AVR.c">
+    <Compile Include="src\HAB-LDS-AVR.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="HAB-LDS-AVR.h">
+    <Compile Include="src\HAB-LDS-AVR.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="lcd.c">
+    <Compile Include="src\lcd_library.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="lcd.h">
+    <Compile Include="src\lcd.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="sd.c">
+    <Compile Include="src\lcd.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="sd.h">
+    <Compile Include="src\sd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\sd.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Makefile">
+    <None Include="src\Makefile">
       <SubType>compile</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>

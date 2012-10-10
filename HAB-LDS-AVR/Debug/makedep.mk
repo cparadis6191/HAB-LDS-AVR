@@ -2,13 +2,13 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
-adc.c
+src\adc.c
 
-bluetooth.c
+src\bluetooth.c
 
-HAB-LDS-AVR.c
+src\HAB-LDS-AVR.c
 
-lcd.c
+src\lcd.c
 
-sd.c
+src\sd.c
 

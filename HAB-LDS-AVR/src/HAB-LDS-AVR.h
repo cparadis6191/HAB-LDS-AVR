@@ -7,4 +7,7 @@
 #include "sd.h"
 #include "adc.h"
 
+// Initialize the internal oscillator (to 32MHz)
+void clock_init( void );
+
 #endif

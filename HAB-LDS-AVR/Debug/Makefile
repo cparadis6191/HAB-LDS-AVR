@@ -30,16 +30,17 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:=
 
 # Every subdirectory with source files must be described here
-SUBDIRS := 
+SUBDIRS :=  \
+../src
 
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
-../adc.c \
-../bluetooth.c \
-../HAB-LDS-AVR.c \
-../lcd.c \
-../sd.c
+../src/adc.c \
+../src/bluetooth.c \
+../src/HAB-LDS-AVR.c \
+../src/lcd.c \
+../src/sd.c
 
 
 PREPROCESSING_SRCS += 
@@ -49,35 +50,35 @@ ASM_SRCS +=
 
 
 OBJS +=  \
-adc.o \
-bluetooth.o \
-HAB-LDS-AVR.o \
-lcd.o \
-sd.o
+src/adc.o \
+src/bluetooth.o \
+src/HAB-LDS-AVR.o \
+src/lcd.o \
+src/sd.o
 
 
 OBJS_AS_ARGS +=  \
-adc.o \
-bluetooth.o \
-HAB-LDS-AVR.o \
-lcd.o \
-sd.o
+src/adc.o \
+src/bluetooth.o \
+src/HAB-LDS-AVR.o \
+src/lcd.o \
+src/sd.o
 
 
 C_DEPS +=  \
-adc.d \
-bluetooth.d \
-HAB-LDS-AVR.d \
-lcd.d \
-sd.d
+src/adc.d \
+src/bluetooth.d \
+src/HAB-LDS-AVR.d \
+src/lcd.d \
+src/sd.d
 
 
 C_DEPS_AS_ARGS +=  \
-adc.d \
-bluetooth.d \
-HAB-LDS-AVR.d \
-lcd.d \
-sd.d
+src/adc.d \
+src/bluetooth.d \
+src/HAB-LDS-AVR.d \
+src/lcd.d \
+src/sd.d
 
 
 OUTPUT_FILE_PATH +=HAB-LDS-AVR.elf
@@ -100,7 +101,7 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 
 
 
-./%.o: .././%.c
+src/%.o: ../src/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : (AVR_8_bit_GNU_Toolchain_3.4.0_663) 4.6.2
 	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Studio 6.0\extensions\Atmel\AVRGCC\3.4.0.65\AVRToolchain\bin\avr-gcc.exe$(QUOTE) -funsigned-char -funsigned-bitfields -O1 -fpack-struct -fshort-enums -g2 -Wall -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -mmcu=atxmega32a4u   -o"$@" "$<" 

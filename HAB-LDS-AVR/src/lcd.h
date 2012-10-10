@@ -1,10 +1,14 @@
-#ifndef __LCD_H_
-#define __LCD_H_
+#ifndef __LCD_USART_H_
+#define __LCD_USART_H_
 
 #include "stdio.h"
 #include "avr/io.h"
+#include "lcd_library.h"
 
-void init_UART( void );
-static int uart_putchar( char c, FILE *stream );
+void USARTC0_init( void );
+int USARTC0_putchar( char c );
+int USARTC0_getchar( void );
+
+void lcd_init( void );
 
 #endif
