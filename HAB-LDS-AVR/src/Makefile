@@ -1,11 +1,11 @@
 CC=avr-gcc
-CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atxmega32a4
+CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atxmega32a4u
 OBJ2HEX=avr-objcopy
 #UISP=/usr/local/bin/uisp
-TARGET=light_direction_sensor
-ADFLAGS=-p m8 -c dragon_pdi -P usb
+TARGET=HAB-LDS-AVR
+ADFLAGS=-p x32a4 -c dragon_pdi -P usb
 # Added this
-OBJS=light_direction_sensor.o lcd.o sd.o adc.o bluetooth.o
+OBJS=HAB-LDS-AVR.o lcd.o sd.o adc.o bluetooth.o
 
 .PHONY: fuses prog erase clean
 
@@ -25,8 +25,9 @@ ${TARGET}.obj : ${OBJS}
 %.eeprom : %.obj
 	${OBJ2HEX} -j .eeprom -O ihex $< $@
 
-light_direction_sensor.o : light_direction_sensor.h
+HAB-LDS-AVR.o : HAB-LDS-AVR.h
 lcd.o : lcd.h
+lcd.o : lcd_library.h
 adc.o : adc.h
 sd.o : sd.h
 bluetooth.o : bluetooth.h
@@ -35,7 +36,3 @@ erase :
 	avrdude ${ADFLAGS} -E noreset -e
 clean :
 	rm -f *.hex *.obj *.o *eeprom
-
-fuses:
-	avrdude ${ADFLAGS} -U lfuse:w:0xe1:m #http://www.engbedded.com/cgi-bin/fc.cgi 
-	avrdude ${ADFLAGS} -U hfuse:w:0xd9:m

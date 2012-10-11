@@ -1,25 +1,37 @@
 #include "HAB-LDS-AVR.h"
 
+static FILE mystdout = FDEV_SETUP_STREAM(USARTC0_putchar, NULL, _FDEV_SETUP_WRITE);
+
 int main( void ) {
+	USARTC0_init();
 	clock_init();
 	lcd_init();
 	
-	while( 1 );
+	stdout = &mystdout;
+
+	while( 1 ) {
+		printf("hello world\n\r");
+	}
 
 	return 0;
 }
 
 // Set the chip to run on the 32MHz internal oscillator
 void clock_init( void ) {
+	
+	// Allow changing of CLK.CTRL
+	CCP = CCP_IOREG_gc;
 	// Start 32MHz RC oscillator
 	OSC.CTRL = OSC_RC32MEN_bm;
 	
 	// Wait for ready
 	while ( !(OSC.STATUS & OSC_RC32MRDY_bm) );	// Wait for ready
 	
+	// Enable the digital feedback locked loop calibration for the 32MHz clock
+	DFLLRC32M_CTRL = DFLL_ENABLE_bm;
+
 	// Allow changing of CLK.CTRL
-	CCP = CCP_IOREG_gc;
-	
+	CCP = CCP_IOREG_gc;	
 	// Set system clock to 32MHz oscillator
 	CLK.CTRL = CLK_SCLKSEL_RC32M_gc;
 }
