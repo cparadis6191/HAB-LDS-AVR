@@ -7,8 +7,7 @@ int main( void ) {
 	clock_init();
 	lcd_init();
 	
-	stdout = &myio;
-	stdin = &myio;
+	stdout = stdin = &myio;
 	
 	char temp = "";
 	while( 1 ) {
