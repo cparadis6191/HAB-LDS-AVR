@@ -1,16 +1,19 @@
 #include "HAB-LDS-AVR.h"
 
-static FILE mystdout = FDEV_SETUP_STREAM(USARTC0_putchar, NULL, _FDEV_SETUP_WRITE);
+static FILE myio = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
 
 int main( void ) {
 	USARTC0_init();
 	clock_init();
 	lcd_init();
 	
-	stdout = &mystdout;
-
+	stdout = &myio;
+	stdin = &myio;
+	
+	char temp = "";
 	while( 1 ) {
-		printf("hello world\n\r");
+		scanf("%c", temp);
+		printf("%c", temp);
 	}
 
 	return 0;
