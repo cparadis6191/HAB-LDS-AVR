@@ -5,9 +5,11 @@
 #include "avr/interrupt.h"
 #include "globals.h"
 
-void init_adc(void);
+void adc_init(void);
 void timer_init(void);
 
 volatile int ADC_POLL_FLAG;
+volatile int ADC_INDEX;
+volatile int ADC_RESULT[10];
 
 #endif

@@ -8,13 +8,14 @@ int main(void) {
 	clock_32kHz_init();
 	clock_32MHz_init();
 	USARTC0_init();
+	adc_init();
 	timer_init();
 	interrupts_init();
 	sei();
 
 	stdout = stdin = &myio;
+
 	int i = 0;
-	
 	while (1) {
 	
 		if (ADC_POLL_FLAG) {

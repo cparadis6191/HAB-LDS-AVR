@@ -1,24 +1,40 @@
 #include "adc.h"
 
-void init_adc(void) {
+void adc_init(void) {
+	// Set the resolution of the ADC to be 12-bit, right-adjusted
+	// Unsigned by default
+	//ADCA.CTRLA |= ;
+
+	ADCA.CTRLB |= ADC_RESOLUTION_12BIT_gc;
+
+	// Set ADC CH0 to run in single ended mode with a gain of 1x
+	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
+
+	
+
 	// Enable the Analog-to-Digital converter
 	ADCA.CTRLA |= ADC_ENABLE_bm;
-
-	// Set the resolution of the ADC to be 8-bit, right adjusted
-	ADCA.CTRLB |= ADC_RESOLUTION_12BIT_gc;
 
 	return;
 }
 
 void init_adc_interrupts(void) {
-	
+	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
+	ADCA.CH0.INTCTRL |= ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
 	
 	return;
 }
 
 ISR(ADCA_CH0_vect) {
-	ADCA.CH0.RESH;
-	ADCA.CH0.RESL;
+	// Results are 12-bit right-adjusted
+	// AVRs have 16-bit integers
+	ADC_RESULT[ADC_INDEX] = 0;
+
+	// Store the lower eight bits
+	ADC_RESULT[ADC_INDEX] = ADCA.CH0.RESL;
+
+	// Store the upper four bits
+	ADC_RESULT[ADC_INDEX] = (ADCA.CH0.RESH << 8);
 	
 	return;
 }
