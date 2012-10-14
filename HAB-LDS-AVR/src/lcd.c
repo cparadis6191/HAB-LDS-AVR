@@ -8,7 +8,10 @@ void USARTC0_init(void) {
 	PORTC.OUTSET |= PIN3_bm;
 	
 	// Values taken from http://www.avrcalc.elektronik-projekt.de/xmega/baud_rate_calculator
+<<<<<<< HEAD
 	// Values for 9600 baud
+=======
+>>>>>>> 1db710ab314aaf82ac93c1f184df51ca21d3023e
 	int bsel = 3317;
 	uint8_t bscale = -4;
 
@@ -16,10 +19,22 @@ void USARTC0_init(void) {
 	USARTC0.BAUDCTRLA = (uint8_t) bsel;
 	USARTC0.BAUDCTRLB = (bscale << 4) | (bsel >> 8);
 	
+<<<<<<< HEAD
 	// Frame for the Grove Serial LCD is 8n1
 	// Set character size to 8-bits (011)
 
 	USARTC0.CTRLC |= USART_CHSIZE_8BIT_gc;
+=======
+	// Initialize the control registers to empty
+	//USARTC0.CTRLA = 0x00;
+	//USARTC0.CTRLB = 0x00;
+	//USARTC0.CTRLC = 0x00;
+	
+	// Frame for the Grove Serial LCD is 8n1
+	// Set character size to 8-bits (011)
+	USARTC0.CTRLC |= USART_CHSIZE_8BIT_gc;
+	//USARTC0.CTRLC = 0b00000011;
+>>>>>>> 1db710ab314aaf82ac93c1f184df51ca21d3023e
 	// Parity initialized to no parity (00)
 	// Stop bits set to zero by default (0)
 	
@@ -41,7 +56,11 @@ int USARTC0_putchar(char c) {
 	return 0;
 }
 
+<<<<<<< HEAD
 int USARTC0_getchar(void) {
+=======
+int USARTC0_getchar( void ) {
+>>>>>>> 1db710ab314aaf82ac93c1f184df51ca21d3023e
 	// Wait until the Receive complete interrupt flag is set
 	while (!(USARTC0.STATUS & USART_RXCIF_bm));
 	
