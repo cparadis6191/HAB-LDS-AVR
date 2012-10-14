@@ -26,7 +26,7 @@ int main(void) {
 // Set the chip to run on the 32MHz internal oscillator
 void clock_init(void) {
 	// Allow changing of OSC.CTRL
-	CCP = CCP_IOREG_gc;	
+	CCP = CCP_IOREG_gc;
 
 	// Start 32MHz RC oscillator (main system clock) and 32.875kHz oscillator (as a reference in calibration for the main clock)
 	OSC.CTRL |= (OSC_RC32MEN_bm | OSC_RC32KEN_bm);
@@ -36,20 +36,20 @@ void clock_init(void) {
 
 	// Enable the digital feedback locked loop calibration for the 32MHz clock
 	// Allow changing of CLK.CTRL
-	CCP = CCP_IOREG_gc;	
+	CCP = CCP_IOREG_gc;
 
 	// Set system clock to 32MHz oscillator
 	CLK.CTRL = CLK_SCLKSEL_RC32M_gc;
 
 	// Clock is running at 33MHz... trying to figure out why, enabling the 32kHz clock should fix it
 	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
-	
+
 	return;
 }
 
 void interrupts_init(void) {
 	// Enable low/mid/high level global interrupts
 	PMIC.CTRL |= (PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm);
-	
+
 	return;
 }
