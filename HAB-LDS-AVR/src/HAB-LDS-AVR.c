@@ -1,10 +1,7 @@
 #include "HAB-LDS-AVR.h"
 
 static FILE myio = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
-<<<<<<< HEAD
 volatile ADC_POLL_FLAG;
-=======
->>>>>>> 1db710ab314aaf82ac93c1f184df51ca21d3023e
 
 int main(void) {
 
@@ -15,19 +12,12 @@ int main(void) {
 	
 	stdout = stdin = &myio;
 	
-<<<<<<< HEAD
 	while (1) {
 	
 		if (ADC_POLL_FLAG) {
 			printf("yay\r\n");
 		}
 		
-=======
-	char temp = "";
-	while( 1 ) {
-		scanf("%c", temp);
-		printf("%c", temp);
->>>>>>> 1db710ab314aaf82ac93c1f184df51ca21d3023e
 	}
 
 	return 0;
