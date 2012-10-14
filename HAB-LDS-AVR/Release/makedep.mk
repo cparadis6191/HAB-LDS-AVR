@@ -12,3 +12,5 @@ src\lcd.c
 
 src\sd.c
 
+src\state_machine.c
+

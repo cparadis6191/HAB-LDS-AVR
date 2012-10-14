@@ -40,7 +40,8 @@ C_SRCS +=  \
 ../src/bluetooth.c \
 ../src/HAB-LDS-AVR.c \
 ../src/lcd.c \
-../src/sd.c
+../src/sd.c \
+../src/state_machine.c
 
 
 PREPROCESSING_SRCS += 
@@ -54,7 +55,8 @@ src/adc.o \
 src/bluetooth.o \
 src/HAB-LDS-AVR.o \
 src/lcd.o \
-src/sd.o
+src/sd.o \
+src/state_machine.o
 
 
 OBJS_AS_ARGS +=  \
@@ -62,7 +64,8 @@ src/adc.o \
 src/bluetooth.o \
 src/HAB-LDS-AVR.o \
 src/lcd.o \
-src/sd.o
+src/sd.o \
+src/state_machine.o
 
 
 C_DEPS +=  \
@@ -70,7 +73,8 @@ src/adc.d \
 src/bluetooth.d \
 src/HAB-LDS-AVR.d \
 src/lcd.d \
-src/sd.d
+src/sd.d \
+src/state_machine.d
 
 
 C_DEPS_AS_ARGS +=  \
@@ -78,7 +82,8 @@ src/adc.d \
 src/bluetooth.d \
 src/HAB-LDS-AVR.d \
 src/lcd.d \
-src/sd.d
+src/sd.d \
+src/state_machine.d
 
 
 OUTPUT_FILE_PATH +=HAB-LDS-AVR.elf
@@ -101,10 +106,12 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 
 
 
+
+
 src/%.o: ../src/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : (AVR_8_bit_GNU_Toolchain_3.4.1_798) 4.6.2
-	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Studio 6.0\extensions\Atmel\AVRGCC\3.4.1.81\AVRToolchain\bin\avr-gcc.exe$(QUOTE) -funsigned-char -funsigned-bitfields -O1 -fpack-struct -fshort-enums -g2 -Wall -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -mmcu=atxmega32a4u   -o"$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Studio 6.0\extensions\Atmel\AVRGCC\3.4.1.81\AVRToolchain\bin\avr-gcc.exe$(QUOTE) -funsigned-char -funsigned-bitfields -DF_CPU=32000000UL  -O1 -fpack-struct -fshort-enums -g2 -Wall -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -mmcu=atxmega32a4u   -o"$@" "$<" 
 	@echo Finished building: $<
 
 

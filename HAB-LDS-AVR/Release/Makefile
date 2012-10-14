@@ -40,7 +40,8 @@ C_SRCS +=  \
 ../src/bluetooth.c \
 ../src/HAB-LDS-AVR.c \
 ../src/lcd.c \
-../src/sd.c
+../src/sd.c \
+../src/state_machine.c
 
 
 PREPROCESSING_SRCS += 
@@ -54,7 +55,8 @@ src/adc.o \
 src/bluetooth.o \
 src/HAB-LDS-AVR.o \
 src/lcd.o \
-src/sd.o
+src/sd.o \
+src/state_machine.o
 
 
 OBJS_AS_ARGS +=  \
@@ -62,7 +64,8 @@ src/adc.o \
 src/bluetooth.o \
 src/HAB-LDS-AVR.o \
 src/lcd.o \
-src/sd.o
+src/sd.o \
+src/state_machine.o
 
 
 C_DEPS +=  \
@@ -70,7 +73,8 @@ src/adc.d \
 src/bluetooth.d \
 src/HAB-LDS-AVR.d \
 src/lcd.d \
-src/sd.d
+src/sd.d \
+src/state_machine.d
 
 
 C_DEPS_AS_ARGS +=  \
@@ -78,7 +82,8 @@ src/adc.d \
 src/bluetooth.d \
 src/HAB-LDS-AVR.d \
 src/lcd.d \
-src/sd.d
+src/sd.d \
+src/state_machine.d
 
 
 OUTPUT_FILE_PATH +=HAB-LDS-AVR.elf
@@ -90,6 +95,8 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 # AVR32/GNU C Compiler
+
+
 
 
 

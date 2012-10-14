@@ -3,6 +3,4 @@
 
 #include "avr/io.h"
 
-
-
 #endif
