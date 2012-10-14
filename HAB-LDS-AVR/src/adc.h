@@ -3,9 +3,11 @@
 
 #include "avr/io.h"
 #include "avr/interrupt.h"
+#include "globals.h"
 
 void init_adc(void);
+void timer_init(void);
 
-void init_timer(void);
+volatile int ADC_POLL_FLAG;
 
 #endif
