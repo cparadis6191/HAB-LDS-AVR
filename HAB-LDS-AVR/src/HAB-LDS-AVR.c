@@ -11,7 +11,6 @@ int main(void) {
 	timer_init();
 	interrupts_init();
 	sei();
-	RTC.CNT = 0;
 
 	stdout = stdin = &myio;
 	int i = 0;
