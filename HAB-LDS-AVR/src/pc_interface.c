@@ -1,4 +1,4 @@
-#include "bluetooth.h"
+#include "pc_interface.h"
 
 // Use the UART lines in PORTC. PORTC[2:3]
 void USARTC1_init(void) {
@@ -30,7 +30,7 @@ void USARTC1_init(void) {
 	return;
 }
 
-void bluetooth_init(void) {
+void pc_interface_init(void) {
 	
 	return;
 }

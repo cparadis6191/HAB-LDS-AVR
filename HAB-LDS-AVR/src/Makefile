@@ -5,7 +5,7 @@ OBJ2HEX=avr-objcopy
 TARGET=HAB-LDS-AVR
 ADFLAGS=-p x32a4 -c dragon_pdi -P usb
 # Added this
-OBJS=HAB-LDS-AVR.o lcd.o sd.o adc.o bluetooth.o
+OBJS=HAB-LDS-AVR.o lcd.o sd.o adc.o pc_interface.o
 
 .PHONY: fuses prog erase clean
 
@@ -30,7 +30,7 @@ lcd.o : lcd.h
 lcd.o : lcd_library.h
 adc.o : adc.h
 sd.o : sd.h
-bluetooth.o : bluetooth.h
+pc_interface.o : pc_interface.h
 
 erase :
 	avrdude ${ADFLAGS} -E noreset -e
