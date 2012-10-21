@@ -28,7 +28,14 @@ void USARTC0_init(void) {
 }
 
 void lcd_init(void) {
-	
+	while (USARTC0_getchar() != UART_READY);// if (TIMEOUT) break;
+
+	USARTC0_putchar(SLCD_CONTROL_HEADER);
+	USARTC0_putchar(SLCD_POWER_ON);
+	USARTC0_putchar(SLCD_INIT_ACK);
+
+	// Wait
+	while (USARTC0_getchar() != SLCD_INIT_DONE);// if (1) break;
 }
 
 int USARTC0_putchar(char c) {

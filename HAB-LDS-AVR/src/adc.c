@@ -10,7 +10,8 @@ void adc_init(void) {
 	// Set ADC CH0 to run in single ended mode with a gain of 1x
 	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 
-	
+	// Set the reference to be AREFA on PA0
+	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
 
 	// Enable the Analog-to-Digital converter
 	ADCA.CTRLA |= ADC_ENABLE_bm;
@@ -18,11 +19,18 @@ void adc_init(void) {
 	return;
 }
 
-void init_adc_interrupts(void) {
+void adc_interrupts_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
 	ADCA.CH0.INTCTRL |= ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc;
 	
 	return;
+}
+
+void adc_start() {
+	// Start a conversion on channel 0
+	ADCA.CH0.CTRL |= ADC_CH_START_bm;
+	
 }
 
 ISR(ADCA_CH0_vect) {
@@ -34,11 +42,12 @@ ISR(ADCA_CH0_vect) {
 	ADC_RESULT[ADC_INDEX] = ADCA.CH0.RESL;
 
 	// Store the upper four bits
-	ADC_RESULT[ADC_INDEX] = (ADCA.CH0.RESH << 8);
+	ADC_RESULT[ADC_INDEX] |= (ADCA.CH0.RESH << 8);
 	
 	return;
 }
 
+// Counter overflow interrupt vector for the real-time clock
 ISR(RTC_OVF_vect) {
 	ADC_POLL_FLAG = 1;
 

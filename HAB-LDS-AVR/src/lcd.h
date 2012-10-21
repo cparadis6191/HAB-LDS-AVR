@@ -3,6 +3,7 @@
 
 #include "stdio.h"
 #include "avr/io.h"
+
 #include "lcd_library.h"
 
 void USARTC0_init(void);

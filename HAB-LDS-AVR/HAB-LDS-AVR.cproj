@@ -5,7 +5,7 @@
     <ProjectVersion>6.0</ProjectVersion>
     <ToolchainName>com.Atmel.AVRGCC8</ToolchainName>
     <ProjectGuid>{12b3440e-066b-4c3b-8ba7-63390c43cbbe}</ProjectGuid>
-    <avrdevice>ATxmega32A4U</avrdevice>
+    <avrdevice>ATxmega128A4U</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
     <Language>C</Language>
@@ -47,7 +47,7 @@
       </OverrideVtorValue>
       <Channel>
         <host>127.0.0.1</host>
-        <port>50277</port>
+        <port>1196</port>
         <ssl>False</ssl>
       </Channel>
       <ToolOptions>
@@ -120,10 +120,10 @@
     <Compile Include="src\adc.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\bluetooth.c">
+    <Compile Include="src\pc_interface.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\bluetooth.h">
+    <Compile Include="src\pc_interface.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\globals.h">

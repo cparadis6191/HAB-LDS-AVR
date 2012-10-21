@@ -41,24 +41,46 @@ void state_machine(void) {
 				continue;
 
 			case ST_IDLE:
-				while (1) {
+				/*while (1) {
 					if (ADC_POLL_FLAG) {
 						count++;
 						fprintf(&PC_STREAM, "%i\r\n", count);
 						
 						ADC_POLL_FLAG = 0;
 					}
-				}
+				}*/
 
 				// Wait until PC connects or polling pin is pulled off
+
+				ST_STATE = ST_POLLING_INIT;
 			
 				continue;
 
 			case ST_POLLING_INIT:
+				// Initialize EEPROM
+				//
+				
+				// Initialize adc interrupts
+				adc_interrupts_init();
+
+				
+				// After things are initialized
+				ST_STATE = ST_POLLING;
 
 				continue;
 
 			case ST_POLLING:
+				while (1) {
+					ADC_INDEX = 0;
+					if (ADC_POLL_FLAG) {
+						count++;
+						fprintf(&PC_STREAM, "%i\r\n", ADC_RESULT[ADC_INDEX]);
+						
+						ADC_POLL_FLAG = 0;
+						
+						adc_start();
+					}
+				}
 
 				continue;
 
