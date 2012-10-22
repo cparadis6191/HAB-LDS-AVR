@@ -2,10 +2,9 @@
 
 static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
 
+volatile int ST_STATE = ST_INIT;
+
 void state_machine(void) {
-	volatile int ST_STATE = ST_INIT;
-	int count = 0;
-	
 	while (1) {
 		switch (ST_STATE) {
 			// Initialization state
@@ -27,11 +26,8 @@ void state_machine(void) {
 				// Configure the ADC
 				adc_init();
 	
-				// Enable the real-time clock and use it to generate interrupts
-				timer_init();
-	
 				// Enable interrupts
-				interrupts_init();
+				main_interrupts_init();
 				// Enable global interrupts
 				sei();
 
@@ -41,15 +37,6 @@ void state_machine(void) {
 				continue;
 
 			case ST_IDLE:
-				/*while (1) {
-					if (ADC_POLL_FLAG) {
-						count++;
-						fprintf(&PC_STREAM, "%i\r\n", count);
-						
-						ADC_POLL_FLAG = 0;
-					}
-				}*/
-
 				// Wait until PC connects or polling pin is pulled off
 
 				ST_STATE = ST_POLLING_INIT;
@@ -58,11 +45,12 @@ void state_machine(void) {
 
 			case ST_POLLING_INIT:
 				// Initialize EEPROM
-				//
+				// Enable the real-time clock and use it to generate interrupts
+				adc_timer_init();
 				
+				adc_channel_init();
 				// Initialize adc interrupts
-				adc_interrupts_init();
-
+				adc_interrupt_init();
 				
 				// After things are initialized
 				ST_STATE = ST_POLLING;
@@ -71,14 +59,13 @@ void state_machine(void) {
 
 			case ST_POLLING:
 				while (1) {
-					ADC_INDEX = 0;
-					if (ADC_POLL_FLAG) {
-						count++;
-						fprintf(&PC_STREAM, "%i\r\n", ADC_RESULT[ADC_INDEX]);
+					g_ADC_INDEX = 4;
+					if (g_ADC_POLL_FLAG) {
+						fprintf(&PC_STREAM, "%i\r\n", g_ADC_RESULT[g_ADC_INDEX]);
 						
-						ADC_POLL_FLAG = 0;
+						g_ADC_POLL_FLAG = 0;
 						
-						adc_start();
+						adc_start(g_ADC_INDEX);
 					}
 				}
 
@@ -158,7 +145,7 @@ void clock_32kHz_init( void ) {
 	return;
 }
 
-void interrupts_init(void) {
+void main_interrupts_init(void) {
 	// Enable low/mid/high level global interrupts
 	PMIC.CTRL = (PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm);
 

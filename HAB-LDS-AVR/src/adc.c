@@ -3,12 +3,6 @@
 void adc_init(void) {
 	// Set the resolution of the ADC to be 12-bit, right-adjusted
 	// Unsigned by default
-	//ADCA.CTRLA |= ;
-
-	ADCA.CTRLB |= ADC_RESOLUTION_12BIT_gc;
-
-	// Set ADC CH0 to run in single ended mode with a gain of 1x
-	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 
 	// Set the reference to be AREFA on PA0
 	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
@@ -19,42 +13,30 @@ void adc_init(void) {
 	return;
 }
 
-void adc_interrupts_init(void) {
+void adc_channel_init(void) {
+	
+	return;
+}
+
+void adc_interrupt_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
 	ADCA.CH0.INTCTRL |= ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
-	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc;
+	// Set ADC CH0 to run in single ended mode with a gain of 1x
+	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	
 	return;
 }
 
-void adc_start() {
+void adc_start(uint8_t pin) {
 	// Start a conversion on channel 0
+	ADCA.CH0.MUXCTRL = (pin << 3);
+	
 	ADCA.CH0.CTRL |= ADC_CH_START_bm;
-	
-}
-
-ISR(ADCA_CH0_vect) {
-	// Results are 12-bit right-adjusted
-	// AVRs have 16-bit integers
-	ADC_RESULT[ADC_INDEX] = 0;
-
-	// Store the lower eight bits
-	ADC_RESULT[ADC_INDEX] = ADCA.CH0.RESL;
-
-	// Store the upper four bits
-	ADC_RESULT[ADC_INDEX] |= (ADCA.CH0.RESH << 8);
-	
-	return;
-}
-
-// Counter overflow interrupt vector for the real-time clock
-ISR(RTC_OVF_vect) {
-	ADC_POLL_FLAG = 1;
 
 	return;
 }
 
-void timer_init(void) {
+void adc_timer_init(void) {
 	// Prescaler of 64
 	RTC.CTRL = RTC_PRESCALER_DIV256_gc;
 	
@@ -77,4 +59,37 @@ void timer_init(void) {
 	RTC.CNT = 0;
 
 	return;
+}
+
+ISR(ADCA_CH0_vect) {
+	// Results are 12-bit right-adjusted
+	// AVRs have 16-bit integers
+
+	// Store the lower eight bits
+	g_ADC_RESULT[g_ADC_INDEX] = ADCA.CH0.RESL;
+
+	// Store the upper four bits
+	g_ADC_RESULT[g_ADC_INDEX] |= (ADCA.CH0.RESH << 8);
+	
+	return;
+}
+
+// Counter overflow interrupt vector for the real-time clock
+ISR(RTC_OVF_vect) {
+	g_ADC_POLL_FLAG = 1;
+
+	return;
+}
+
+uint8_t adc_read_calibration_byte(uint8_t location) {
+	uint8_t result;
+
+	// Load the NVM Command register to read the calibration row
+	NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;
+	result = pgm_read_byte(location);
+
+	// Clean up NVM Command register
+	NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+
+	return result;
 }

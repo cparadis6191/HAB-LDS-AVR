@@ -40,6 +40,6 @@ void clock_32MHz_init(void);
 void clock_32kHz_init(void);
 
 // Initialize interrupts
-void interrupts_init(void);
+void main_interrupts_init(void);
 
 #endif
