@@ -1,8 +1,8 @@
 #ifndef __LCD_USART_H_
 #define __LCD_USART_H_
 
-#include "stdio.h"
-#include "avr/io.h"
+#include <stdio.h>
+#include <avr/io.h>
 
 #include "lcd_library.h"
 

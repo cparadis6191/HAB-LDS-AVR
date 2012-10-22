@@ -1,9 +1,9 @@
-#ifndef STATE_MACHINE_H_
-#define STATE_MACHINE_H_
+#ifndef __STATE_MACHINE_H_
+#define __STATE_MACHINE_H_
 
-#include "avr/interrupt.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <avr/interrupt.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "globals.h"
 #include "lcd.h"

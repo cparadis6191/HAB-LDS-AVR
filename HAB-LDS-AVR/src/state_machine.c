@@ -45,12 +45,13 @@ void state_machine(void) {
 
 			case ST_POLLING_INIT:
 				// Initialize EEPROM
-				// Enable the real-time clock and use it to generate interrupts
-				adc_timer_init();
-				
+
+				// Initialize a channel
 				adc_channel_init();
 				// Initialize adc interrupts
 				adc_interrupt_init();
+				// Enable the real-time clock and use it to generate interrupts
+				adc_timer_init();
 				
 				// After things are initialized
 				ST_STATE = ST_POLLING;

@@ -3,6 +3,10 @@
 void adc_init(void) {
 	// Set the resolution of the ADC to be 12-bit, right-adjusted
 	// Unsigned by default
+	// read low ADCA calibration byte from NVM signature row into register
+	 ADCA.CALL = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+	 // read high ADCA calibration byte from NVM signature row into register
+	 ADCA.CALH = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 
 	// Set the reference to be AREFA on PA0
 	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
@@ -14,6 +18,8 @@ void adc_init(void) {
 }
 
 void adc_channel_init(void) {
+	// Set ADC CH0 to run in single ended mode with a gain of 1x
+	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	
 	return;
 }
@@ -21,8 +27,6 @@ void adc_channel_init(void) {
 void adc_interrupt_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
 	ADCA.CH0.INTCTRL |= ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
-	// Set ADC CH0 to run in single ended mode with a gain of 1x
-	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	
 	return;
 }
