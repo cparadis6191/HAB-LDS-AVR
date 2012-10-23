@@ -12,7 +12,6 @@ void state_machine(void) {
 			// Initialize interrupts
 			// Go to the idle state after initialization
 			case ST_INIT:
-
 				// Initialize the clocks				
 				// Initialize the main clock
 				clock_32MHz_init();
@@ -22,7 +21,7 @@ void state_machine(void) {
 
 				// Initialize communication to the LCD
 				USARTC0_init();
-				
+
 				// Configure the ADC
 				adc_init();
 	
@@ -50,8 +49,8 @@ void state_machine(void) {
 				adc_channel_init();
 				// Initialize adc interrupts
 				adc_interrupt_init();
-				// Enable the real-time clock and use it to generate interrupts
-				adc_timer_init();
+				// Enable the real-time clock and use it to generate interrupts every t seconds
+				adc_timer_init(5);
 				
 				// After things are initialized
 				ST_STATE = ST_POLLING;
@@ -61,10 +60,10 @@ void state_machine(void) {
 			case ST_POLLING:
 				while (1) {
 					g_ADC_INDEX = 4;
-					if (g_ADC_POLL_FLAG) {
+					if (g_ADC_RECORD_FLAG) {
 						fprintf(&PC_STREAM, "%i\r\n", g_ADC_RESULT[g_ADC_INDEX]);
 						
-						g_ADC_POLL_FLAG = 0;
+						g_ADC_RECORD_FLAG = 0;
 						
 						adc_start(g_ADC_INDEX);
 					}

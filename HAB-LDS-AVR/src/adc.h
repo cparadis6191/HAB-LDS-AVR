@@ -10,17 +10,25 @@
 
 // ADC initialization functions
 void adc_init(void);
+
+// Initialize channels 1 and 2 to be used
 void adc_channel_init(void);
+
+// Configure channels 1 and 2 to be low-level interrupts
 void adc_interrupt_init(void);
-void adc_timer_init(void);
+
+// Configure the timer to interrupt every t seconds (t should be less than 256)
+void adc_timer_init(int t);
 
 // Start a conversion on the specified pin
 void adc_start(uint8_t pin);
 
-uint8_t adc_read_calibration_byte(uint8_t location);
+// Used to retrieve factory calibration byte for the ADC
+uint8_t adc_read_calibration_byte(uint8_t address);
 
-// Global variables and flags redeclared to be used in adc code
-volatile int g_ADC_POLL_FLAG;
+// Global variables and flags redeclared to be used in ADC code
+volatile int g_ADC_RECORD_FLAG;
+volatile int g_ADC_RECORD_DELAY;
 volatile uint8_t g_ADC_INDEX;
 volatile int g_ADC_RESULT[10];
 

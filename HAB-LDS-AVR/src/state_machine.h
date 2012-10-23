@@ -11,6 +11,9 @@
 #include "pc_interface.h"
 #include "sd.h"
 
+// Global variable to hold the current state of the system
+volatile extern int ST_STATE;
+
 // Enumerated states
 enum {	ST_NULL = -1,
 		ST_INIT,
@@ -27,8 +30,6 @@ enum {	ST_NULL = -1,
 		ST_PC_SEND_DATA,
 		ST_PC_RECEIVE_SETTINGS,
 		ST_PC_DISCONNECT };
-
-volatile extern int ST_STATE;
 
 // Call this to enter the state machine
 void state_machine(void);

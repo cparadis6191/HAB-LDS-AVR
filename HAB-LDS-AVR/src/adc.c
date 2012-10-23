@@ -19,14 +19,16 @@ void adc_init(void) {
 
 void adc_channel_init(void) {
 	// Set ADC CH0 to run in single ended mode with a gain of 1x
-	ADCA.CH0.CTRL |= (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
+	ADCA.CH0.CTRL = (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
+	ADCA.CH1.CTRL = (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	
 	return;
 }
 
 void adc_interrupt_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
-	ADCA.CH0.INTCTRL |= ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	ADCA.CH0.INTCTRL = ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	ADCA.CH1.INTCTRL = ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
 	
 	return;
 }
@@ -40,14 +42,14 @@ void adc_start(uint8_t pin) {
 	return;
 }
 
-void adc_timer_init(void) {
+void adc_timer_init(int t) {
 	// Prescaler of 64
 	RTC.CTRL = RTC_PRESCALER_DIV256_gc;
 	
 	// Top value of counter
 	// t = 15 (delay in seconds)
 	// top = 32.768kHz/prescaler*t
-	int top = 128*1;
+	int top = 128*t;
 
 	// Wait until the clock is synced
 	while ((RTC.STATUS & RTC_SYNCBUSY_bm));
@@ -78,19 +80,32 @@ ISR(ADCA_CH0_vect) {
 	return;
 }
 
+ISR(ADCA_CH1_vect) {
+	// Results are 12-bit right-adjusted
+	// AVRs have 16-bit integers
+
+	// Store the lower eight bits
+	g_ADC_RESULT[g_ADC_INDEX + 5] = ADCA.CH1.RESL;
+
+	// Store the upper four bits
+	g_ADC_RESULT[g_ADC_INDEX + 5] |= (ADCA.CH1.RESH << 8);
+	
+	return;
+}
+
 // Counter overflow interrupt vector for the real-time clock
 ISR(RTC_OVF_vect) {
-	g_ADC_POLL_FLAG = 1;
+	g_ADC_RECORD_FLAG = 1;
 
 	return;
 }
 
-uint8_t adc_read_calibration_byte(uint8_t location) {
+uint8_t adc_read_calibration_byte(uint8_t address) {
 	uint8_t result;
 
 	// Load the NVM Command register to read the calibration row
 	NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;
-	result = pgm_read_byte(location);
+	result = pgm_read_byte(address);
 
 	// Clean up NVM Command register
 	NVM_CMD = NVM_CMD_NO_OPERATION_gc;

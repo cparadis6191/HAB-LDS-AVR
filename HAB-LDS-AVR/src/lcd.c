@@ -27,18 +27,18 @@ void USARTC0_init(void) {
 	USARTC0.CTRLB |= (USART_TXEN_bm | USART_RXEN_bm);
 }
 
-void lcd_init(void) {
+void lcd_init(FILE *stream) {
 	while (USARTC0_getchar() != UART_READY);// if (TIMEOUT) break;
 
-	USARTC0_putchar(SLCD_CONTROL_HEADER);
-	USARTC0_putchar(SLCD_POWER_ON);
-	USARTC0_putchar(SLCD_INIT_ACK);
+	USARTC0_putchar(SLCD_CONTROL_HEADER, stream);
+	USARTC0_putchar(SLCD_POWER_ON, stream);
+	USARTC0_putchar(SLCD_INIT_ACK, stream);
 
 	// Wait
-	while (USARTC0_getchar() != SLCD_INIT_DONE);// if (1) break;
+	while (USARTC0_getchar() != SLCD_INIT_DONE);// if (TIMEOUT) break;
 }
 
-int USARTC0_putchar(char c) {
+int USARTC0_putchar(char c, FILE *stream) {
 	// Wait until the transmit register is empty
 	while (!(USARTC0.STATUS & USART_DREIF_bm));
 	
@@ -53,5 +53,5 @@ int USARTC0_getchar(void) {
 	while (!(USARTC0.STATUS & USART_RXCIF_bm));
 	
 	// Read the data
-	return USARTC0.DATA;
+	return (int) USARTC0.DATA;
 }
