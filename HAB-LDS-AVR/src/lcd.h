@@ -6,10 +6,10 @@
 
 #include "lcd_library.h"
 
-void USARTC0_init(void);
-int USARTC0_putchar(char c, FILE *stream);
-int USARTC0_getchar(void);
+void USARTC1_init(void);
+int USARTC1_putchar(char c, FILE *stream);
+int USARTC1_getchar(FILE *stream);
 
-void lcd_init(FILE *stream);
+void lcd_init(void);
 
 #endif

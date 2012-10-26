@@ -1,11 +1,11 @@
 #include "lcd.h"
 
-// Use the UART lines in PORTC. PORTC[2:3]
-void USARTC0_init(void) {
+// Use the UART lines in PORTC. PORTC[6:7]
+void USARTC1_init(void) {
 	// Set TxD as output
-	PORTC.DIRSET |= PIN3_bm;
+	PORTC.DIRSET |= PIN7_bm;
 	// Set the TxD pin value high
-	PORTC.OUTSET |= PIN3_bm;
+	PORTC.OUTSET |= PIN7_bm;
 	
 	// Values taken from http://www.avrcalc.elektronik-projekt.de/xmega/baud_rate_calculator
 	// Values for 9600 baud
@@ -13,45 +13,47 @@ void USARTC0_init(void) {
 	uint8_t bscale = -4;
 
 	// Set the baud rate and frame format
-	USARTC0.BAUDCTRLA = (uint8_t) bsel;
-	USARTC0.BAUDCTRLB = (bscale << 4) | (bsel >> 8);
+	USARTC1.BAUDCTRLA = (uint8_t) bsel;
+	USARTC1.BAUDCTRLB = (bscale << 4) | (bsel >> 8);
 	
 	// Frame for the Grove Serial LCD is 8n1
 	// Set character size to 8-bits (011)
 
-	USARTC0.CTRLC |= USART_CHSIZE_8BIT_gc;
+	USARTC1.CTRLC |= USART_CHSIZE_8BIT_gc;
 	// Parity initialized to no parity (00)
 	// Stop bits set to zero by default (0)
 	
 	// Enable the transmit and receive lines
-	USARTC0.CTRLB |= (USART_TXEN_bm | USART_RXEN_bm);
+	USARTC1.CTRLB |= (USART_TXEN_bm | USART_RXEN_bm);
+
+	return;
 }
 
-void lcd_init(FILE *stream) {
-	while (USARTC0_getchar() != UART_READY);// if (TIMEOUT) break;
+void lcd_init(void) {
+	while (USARTC1_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
 
-	USARTC0_putchar(SLCD_CONTROL_HEADER, stream);
-	USARTC0_putchar(SLCD_POWER_ON, stream);
-	USARTC0_putchar(SLCD_INIT_ACK, stream);
+	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTC1_putchar(SLCD_POWER_ON, NULL);
+	USARTC1_putchar(SLCD_INIT_ACK, NULL);
 
 	// Wait
-	while (USARTC0_getchar() != SLCD_INIT_DONE);// if (TIMEOUT) break;
+	while (USARTC1_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
 }
 
-int USARTC0_putchar(char c, FILE *stream) {
+int USARTC1_putchar(char c, FILE *stream) {
 	// Wait until the transmit register is empty
-	while (!(USARTC0.STATUS & USART_DREIF_bm));
+	while (!(USARTC1.STATUS & USART_DREIF_bm));
 	
 	// Write the data
-	USARTC0.DATA = c;
+	USARTC1.DATA = c;
 	
 	return 0;
 }
 
-int USARTC0_getchar(void) {
+int USARTC1_getchar(FILE *stream) {
 	// Wait until the Receive complete interrupt flag is set
-	while (!(USARTC0.STATUS & USART_RXCIF_bm));
+	while (!(USARTC1.STATUS & USART_RXCIF_bm));
 	
 	// Read the data
-	return (int) USARTC0.DATA;
+	return (int) USARTC1.DATA;
 }

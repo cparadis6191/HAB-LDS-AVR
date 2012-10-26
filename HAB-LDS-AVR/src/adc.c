@@ -33,11 +33,15 @@ void adc_interrupt_init(void) {
 	return;
 }
 
-void adc_start(uint8_t pin) {
-	// Start a conversion on channel 0
-	ADCA.CH0.MUXCTRL = (pin << 3);
+void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin) {
+	// Choose the pin for channel 1
+	ADCA.CH0.MUXCTRL = (channel_0_pin << 3);
+	// Choose the pin for channel 1
+	ADCA.CH1.MUXCTRL = (channel_1_pin << 3);
 	
+	// Start a conversion on both channels
 	ADCA.CH0.CTRL |= ADC_CH_START_bm;
+	ADCA.CH1.CTRL |= ADC_CH_START_bm;
 
 	return;
 }
@@ -77,6 +81,9 @@ ISR(ADCA_CH0_vect) {
 	// Store the upper four bits
 	g_ADC_RESULT[g_ADC_INDEX] |= (ADCA.CH0.RESH << 8);
 	
+	// Mark the conversion as complete
+	g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
+	
 	return;
 }
 
@@ -89,6 +96,8 @@ ISR(ADCA_CH1_vect) {
 
 	// Store the upper four bits
 	g_ADC_RESULT[g_ADC_INDEX + 5] |= (ADCA.CH1.RESH << 8);
+
+	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
 	
 	return;
 }

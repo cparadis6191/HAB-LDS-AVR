@@ -1,6 +1,7 @@
 #include "state_machine.h"
 
 static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
+static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTC1_putchar, USARTC1_getchar, _FDEV_SETUP_RW);
 
 volatile int ST_STATE = ST_INIT;
 
@@ -19,8 +20,11 @@ void state_machine(void) {
 				// Initialize the real-time clock
 				clock_32kHz_init();
 
-				// Initialize communication to the LCD
+				// Initialize communication to the PC
 				USARTC0_init();
+				
+				// Initialize communication to the LCD
+				USARTC1_init();
 
 				// Configure the ADC
 				adc_init();
@@ -33,14 +37,22 @@ void state_machine(void) {
 				// After initialization go to idle state
 				ST_STATE = ST_IDLE;
 
-				continue;
+				break;
 
 			case ST_IDLE:
 				// Wait until PC connects or polling pin is pulled off
+				//fputc(SLCD_CONTROL_HEADER, &LCD_STREAM);
+				//fputc(SLCD_BACKLIGHT_ON, &LCD_STREAM);
+				fprintf(&PC_STREAM, "waiting for ready from lcd\r\n");
+				while (UART_READY != fgetc(&LCD_STREAM));
+				fprintf(&PC_STREAM, "got ready from lcd\r\n");
+				fputc(SLCD_CONTROL_HEADER, &LCD_STREAM);
+				fputc(SLCD_BACKLIGHT_ON, &LCD_STREAM);
+				//ST_STATE = ST_POLLING_INIT;
 
-				ST_STATE = ST_POLLING_INIT;
+				while(1);
 			
-				continue;
+				break;
 
 			case ST_POLLING_INIT:
 				// Initialize EEPROM
@@ -55,51 +67,65 @@ void state_machine(void) {
 				// After things are initialized
 				ST_STATE = ST_POLLING;
 
-				continue;
+				break;
 
 			case ST_POLLING:
 				while (1) {
-					g_ADC_INDEX = 4;
+					// Iterate through each sensor and record data
+					// Use two channels to get data from
+					if (g_ADC_CONVERSION_COMPLETE_CHANNEL_0 && g_ADC_CONVERSION_COMPLETE_CHANNEL_1) {
+						// Reset the conversion complete flags
+						g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
+						g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
+						
+						for (g_ADC_INDEX = 0; g_ADC_INDEX < 10; g_ADC_INDEX++) {
+							// Starts a conversion on index n and n + 5
+							adc_start(g_ADC_INDEX, g_ADC_INDEX + 5);
+
+							fprintf(&PC_STREAM, "PA%i is %i\r\n", g_ADC_INDEX, g_ADC_RESULT[g_ADC_INDEX]);
+						}
+					}
+
+					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
-						fprintf(&PC_STREAM, "%i\r\n", g_ADC_RESULT[g_ADC_INDEX]);
+						// Sum the x and y components of the vectors
+						resolve_angle();
 						
 						g_ADC_RECORD_FLAG = 0;
-						
-						adc_start(g_ADC_INDEX);
 					}
 				}
 
-				continue;
+				break;
 
 			case ST_POLLING_DONE:
 
 				// Return to the idle state after pin is added back
 				ST_STATE = ST_IDLE;
 				
-				continue;
+				break;
 
 			case ST_PC_INIT_COMM:
 			
-				continue;
+				break;
 
 			case ST_PC_CONNECTED:
 			
-				continue;
+				break;
 
 			case ST_PC_SEND_DATA:
 			
-				continue;
+				break;
 
 			case ST_PC_RECEIVE_SETTINGS:
 			
-				continue;
+				break;
 			
 			case ST_PC_DISCONNECT:
 			
-				continue;
+				break;
 			default:
 
-				continue;
+				break;
 		}
 	}
 }
@@ -150,4 +176,23 @@ void main_interrupts_init(void) {
 	PMIC.CTRL = (PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm);
 
 	return;
+}
+
+double resolve_angle(void) {
+	// Arrays holding the sensor x/y-component magnitudes
+	// Values calculated with Matlab sin(pi/180*(0:9)*36) and cos(pi/180*(0:9)*36)
+	const double sensor_x_component[10] = {1.0000, 0.8090, 0.3090, -0.3090, -0.8090, -1.0000, -0.8090, -0.3090, 0.3090, 0.8090};
+	const double sensor_y_component[10] = {0, 0.5878, 0.9511, 0.9511, 0.5878, 0.0000, -0.5878, -0.9511, -0.9511, -0.5878};
+
+	double interm_x = 0;
+	double interm_y = 0;
+	
+	for (int i = 0; i < 10; i++) {
+		// For each sensor, subtract opposite sensor and determine x/y-components
+		interm_x += sensor_x_component[i]*(g_ADC_RESULT[i] - g_ADC_RESULT[i + 5]);
+		interm_y += sensor_y_component[i]*(g_ADC_RESULT[i] - g_ADC_RESULT[i + 5]);
+	}
+
+	// Resolve the angle using arctangent
+	return atan2(interm_y, interm_x);
 }

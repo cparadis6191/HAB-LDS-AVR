@@ -21,14 +21,17 @@ void adc_interrupt_init(void);
 void adc_timer_init(int t);
 
 // Start a conversion on the specified pin
-void adc_start(uint8_t pin);
+void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin);
 
 // Used to retrieve factory calibration byte for the ADC
 uint8_t adc_read_calibration_byte(uint8_t address);
 
 // Global variables and flags redeclared to be used in ADC code
 volatile int g_ADC_RECORD_FLAG;
+volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_0;
+volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_1;
 volatile int g_ADC_RECORD_DELAY;
+
 volatile uint8_t g_ADC_INDEX;
 volatile int g_ADC_RESULT[10];
 

@@ -4,12 +4,13 @@
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "globals.h"
 #include "lcd.h"
 #include "adc.h"
 #include "pc_interface.h"
-#include "sd.h"
+#include "storage.h"
 
 // Global variable to hold the current state of the system
 volatile extern int ST_STATE;
@@ -42,5 +43,8 @@ void clock_32kHz_init(void);
 
 // Initialize interrupts
 void main_interrupts_init(void);
+
+// Resolve the angle from the 10 sensor results
+double resolve_angle(void);
 
 #endif
