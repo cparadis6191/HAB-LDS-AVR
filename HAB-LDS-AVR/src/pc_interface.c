@@ -49,7 +49,5 @@ int USARTC0_getchar(FILE *streamvoid) {
 	while (!(USARTC0.STATUS & USART_RXCIF_bm));
 	
 	// Read the data
-	int c = USARTC0.DATA;
-	
-	return c;
+	return (int) USARTC0.DATA;
 }

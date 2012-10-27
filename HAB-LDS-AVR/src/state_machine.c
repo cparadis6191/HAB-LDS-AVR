@@ -1,4 +1,5 @@
 #include "state_machine.h"
+#include "util/delay.h"
 
 static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
 static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTC1_putchar, USARTC1_getchar, _FDEV_SETUP_RW);
@@ -28,7 +29,7 @@ void state_machine(void) {
 
 				// Configure the ADC
 				adc_init();
-	
+
 				// Enable interrupts
 				main_interrupts_init();
 				// Enable global interrupts
@@ -41,16 +42,19 @@ void state_machine(void) {
 
 			case ST_IDLE:
 				// Wait until PC connects or polling pin is pulled off
-				//fputc(SLCD_CONTROL_HEADER, &LCD_STREAM);
-				//fputc(SLCD_BACKLIGHT_ON, &LCD_STREAM);
-				fprintf(&PC_STREAM, "waiting for ready from lcd\r\n");
-				while (UART_READY != fgetc(&LCD_STREAM));
-				fprintf(&PC_STREAM, "got ready from lcd\r\n");
-				fputc(SLCD_CONTROL_HEADER, &LCD_STREAM);
-				fputc(SLCD_BACKLIGHT_ON, &LCD_STREAM);
-				//ST_STATE = ST_POLLING_INIT;
+				fprintf(&LCD_STREAM, "U");
+				fprintf(&PC_STREAM, "U");
+				fprintf(&PC_STREAM, "%c", SLCD_CONTROL_HEADER);
+				fprintf(&LCD_STREAM, "%c", SLCD_POWER_OFF);
+				fprintf(&PC_STREAM, "%c", SLCD_POWER_OFF);
+				fprintf(&LCD_STREAM, "%c", SLCD_CONTROL_HEADER);
+				fprintf(&PC_STREAM, "%c", SLCD_CONTROL_HEADER);
+				fprintf(&LCD_STREAM, "%c", SLCD_POWER_ON);
+				fprintf(&PC_STREAM, "%c", SLCD_POWER_ON);
+				fprintf(&LCD_STREAM, "%c", SLCD_INIT_ACK);
+				fprintf(&PC_STREAM, "%c", SLCD_INIT_ACK);
 
-				while(1);
+				//ST_STATE = ST_POLLING_INIT;
 			
 				break;
 
