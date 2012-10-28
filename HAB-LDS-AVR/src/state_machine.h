@@ -12,11 +12,8 @@
 #include "pc_interface.h"
 #include "storage.h"
 
-// Global variable to hold the current state of the system
-volatile extern int ST_STATE;
-
 // Enumerated states
-enum {	ST_NULL = -1,
+enum {	ST_NULL = 0,
 		ST_INIT,
 		ST_IDLE,
 

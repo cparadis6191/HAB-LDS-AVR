@@ -12,4 +12,8 @@ int USARTC1_getchar(FILE *stream);
 
 void lcd_init(void);
 
+void lcd_clear_display(void);
+void lcd_backlight_off(void);
+void lcd_backlight_on(void);
+
 #endif

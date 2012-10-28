@@ -19,12 +19,12 @@ void USARTC0_init(void) {
 	// Frame for the PC interface is 8n1
 	// Set character size to 8-bits (011)
 
-	USARTC0.CTRLC |= USART_CHSIZE_8BIT_gc;
+	USARTC0.CTRLC = USART_CHSIZE_8BIT_gc;
 	// Parity initialized to no parity (00)
 	// Stop bits set to zero by default (0)
 	
 	// Enable the transmit and receive lines
-	USARTC0.CTRLB |= (USART_TXEN_bm | USART_RXEN_bm);
+	USARTC0.CTRLB = (USART_TXEN_bm | USART_RXEN_bm);
 
 	return;
 }
@@ -49,5 +49,5 @@ int USARTC0_getchar(FILE *streamvoid) {
 	while (!(USARTC0.STATUS & USART_RXCIF_bm));
 	
 	// Read the data
-	return (int) USARTC0.DATA;
+	return USARTC0.DATA;
 }

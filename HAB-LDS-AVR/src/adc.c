@@ -76,10 +76,10 @@ ISR(ADCA_CH0_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the lower eight bits
-	g_ADC_RESULT[g_ADC_INDEX] = ADCA.CH0.RESL;
+	g_ADC_RESULT[g_ADC_INDEX - 1] = ADCA.CH0.RESL;
 
 	// Store the upper four bits
-	g_ADC_RESULT[g_ADC_INDEX] |= (ADCA.CH0.RESH << 8);
+	g_ADC_RESULT[g_ADC_INDEX - 1] += (ADCA.CH0.RESH << 8);
 	
 	// Mark the conversion as complete
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
@@ -92,10 +92,10 @@ ISR(ADCA_CH1_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the lower eight bits
-	g_ADC_RESULT[g_ADC_INDEX + 5] = ADCA.CH1.RESL;
+	g_ADC_RESULT[g_ADC_INDEX + 5 - 1] = ADCA.CH1.RESL;
 
 	// Store the upper four bits
-	g_ADC_RESULT[g_ADC_INDEX + 5] |= (ADCA.CH1.RESH << 8);
+	g_ADC_RESULT[g_ADC_INDEX + 5 - 1] |= (ADCA.CH1.RESH << 8);
 
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
 	
@@ -104,6 +104,7 @@ ISR(ADCA_CH1_vect) {
 
 // Counter overflow interrupt vector for the real-time clock
 ISR(RTC_OVF_vect) {
+	// After g_POLLING_INTERVAL seconds, record and display the data
 	g_ADC_RECORD_FLAG = 1;
 
 	return;

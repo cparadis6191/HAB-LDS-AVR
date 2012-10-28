@@ -30,7 +30,6 @@ uint8_t adc_read_calibration_byte(uint8_t address);
 volatile int g_ADC_RECORD_FLAG;
 volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_0;
 volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_1;
-volatile int g_ADC_RECORD_DELAY;
 
 volatile uint8_t g_ADC_INDEX;
 volatile int g_ADC_RESULT[10];
