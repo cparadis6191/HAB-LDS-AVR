@@ -33,7 +33,7 @@ void adc_interrupt_init(void) {
 	return;
 }
 
-void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin) {
+void adc_start(int channel_0_pin, int channel_1_pin) {
 	// Choose the pin for channel 1
 	ADCA.CH0.MUXCTRL = (channel_0_pin << 3);
 	// Choose the pin for channel 1

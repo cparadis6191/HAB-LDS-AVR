@@ -1,6 +1,6 @@
 #include "state_machine.h"
-#include "math.h"
 
+// Peripheral streams to print to
 static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
 static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTC1_putchar, USARTC1_getchar, _FDEV_SETUP_RW);
 

@@ -21,7 +21,7 @@ void adc_interrupt_init(void);
 void adc_timer_init(int t);
 
 // Start a conversion on the specified pin
-void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin);
+void adc_start(int channel_0_pin, int channel_1_pin);
 
 // Used to retrieve factory calibration byte for the ADC
 uint8_t adc_read_calibration_byte(uint8_t address);
