@@ -8,7 +8,6 @@ static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTC1_putchar, USARTC1_getchar, _FD
 volatile int ST_STATE = ST_INIT;
 
 void state_machine(void) {
-	int count = 0;
 	while (1) {
 		switch (ST_STATE) {
 			// Initialization state
@@ -78,30 +77,45 @@ void state_machine(void) {
 			case ST_POLLING:
 				fprintf(&PC_STREAM, "IN ST_POLLING\r\n");
 				while (1) {
+					double sensor_results[10];
+
 					// Iterate through each sensor and record data
 					// Use two channels to get data from
 					// Start at 1 because PA0 is a reference
-					for (g_ADC_INDEX = 1; g_ADC_INDEX <= 10; g_ADC_INDEX++) {
-						// Starts a conversion on index n and n + 5
-						adc_start(g_ADC_INDEX, g_ADC_INDEX + 5);
+					for (int sensor_index = 1; sensor_index <= 10; sensor_index++) {
+							sensor_results[sensor_index - 1] = 0;
+							sensor_results[sensor_index + 5 - 1] = 0;
 
-						// Wait until the ISRs handle each ADC channel
-						if ((g_ADC_CONVERSION_COMPLETE_CHANNEL_0 && g_ADC_CONVERSION_COMPLETE_CHANNEL_1)) {
-							// Reset the conversion complete flags
-							g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
-							g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
-						}
-					}						
+						// Do four conversions and average the results
+						for (int sensor_sum_num = 0; sensor_sum_num < 5; sensor_sum_num++) {
+							// Starts a conversion on index n and n + 5
+							adc_start(sensor_index, sensor_index + 5);
+
+							// Wait until the ISRs handle each ADC channel
+							if ((g_ADC_CONVERSION_COMPLETE_CHANNEL_0 && g_ADC_CONVERSION_COMPLETE_CHANNEL_1)) {
+								// Reset the conversion complete flags
+								g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
+								g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
+
+								// Sum the results
+								sensor_results[sensor_index - 1] += g_ADC_RESULT_CHANNEL_0;
+								sensor_results[sensor_index + 5 - 1] += g_ADC_RESULT_CHANNEL_1;
+							}
+						}						
+
+						// Divide by 4 to get the average
+						sensor_results[sensor_index - 1] /= 4;
+						sensor_results[sensor_index + 5 - 1] /= 4;
+					}
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
-						count++;
 						// Sum the x and y components of the vectors
 						lcd_clear_display();
-						//fprintf(&LCD_STREAM, "PA%i is %i", count, g_ADC_RESULT[0]);
 						//fprintf(&LCD_STREAM, "PA%i is %i", g_ADC_INDEX, g_ADC_RESULT[0]);
-						fprintf(&LCD_STREAM, "Angle: %f", resolve_angle());
-						
+						fprintf(&LCD_STREAM, "Angle: %f", resolve_angle(sensor_results));
+
+						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
 					}
 				}
@@ -196,19 +210,19 @@ void main_interrupts_init(void) {
 	return;
 }
 
-double resolve_angle(void) {
+double resolve_angle(double *sensor_results) {
 	// Arrays holding the sensor x/y-component magnitudes
 	// Values calculated with Matlab sin(pi/180*(0:9)*36) and cos(pi/180*(0:9)*36)
-	const double sensor_x_component[10] = {1.0000, 0.8090, 0.3090, -0.3090, -0.8090};
-	const double sensor_y_component[10] = {0, 0.5878, 0.9511, 0.9511, 0.5878};
+	const double sensor_x_component[10] = {1.0, 0.8090, 0.3090, -0.3090, -0.8090};
+	const double sensor_y_component[10] = {0.0, 0.5878, 0.9511, 0.9511, 0.5878};
 
 	double interm_x = 0;
 	double interm_y = 0;
 	
 	for (int i = 0; i < 5; i++) {
 		// For each sensor, subtract opposite sensor and determine x/y-components
-		interm_x += sensor_x_component[i]*(g_ADC_RESULT[i] - g_ADC_RESULT[i + 5]);
-		interm_y += sensor_y_component[i]*(g_ADC_RESULT[i] - g_ADC_RESULT[i + 5]);
+		interm_x += sensor_x_component[i]*(sensor_results[i] - sensor_results[i + 5]);
+		interm_y += sensor_y_component[i]*(sensor_results[i] - sensor_results[i + 5]);
 	}
 
 	// Resolve the angle using arctangent and convert to an angle in degrees

@@ -29,6 +29,7 @@ enum {	ST_NULL = 0,
 		ST_PC_RECEIVE_SETTINGS,
 		ST_PC_DISCONNECT };
 
+
 // Call this to enter the state machine
 void state_machine(void);
 
@@ -42,6 +43,6 @@ void clock_32kHz_init(void);
 void main_interrupts_init(void);
 
 // Resolve the angle from the 10 sensor results
-double resolve_angle(void);
+double resolve_angle(double *sensor_results);
 
 #endif

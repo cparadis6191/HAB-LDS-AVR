@@ -46,6 +46,7 @@ void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin) {
 	return;
 }
 
+// Set up the timer to produce interrupts every t seconds
 void adc_timer_init(int t) {
 	// Prescaler of 64
 	RTC.CTRL = RTC_PRESCALER_DIV256_gc;
@@ -76,10 +77,10 @@ ISR(ADCA_CH0_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the lower eight bits
-	g_ADC_RESULT[g_ADC_INDEX - 1] = ADCA.CH0.RESL;
+	g_ADC_RESULT_CHANNEL_0 = ADCA.CH0.RESL;
 
 	// Store the upper four bits
-	g_ADC_RESULT[g_ADC_INDEX - 1] += (ADCA.CH0.RESH << 8);
+	g_ADC_RESULT_CHANNEL_0 += (ADCA.CH0.RESH << 8);
 	
 	// Mark the conversion as complete
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
@@ -92,10 +93,10 @@ ISR(ADCA_CH1_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the lower eight bits
-	g_ADC_RESULT[g_ADC_INDEX + 5 - 1] = ADCA.CH1.RESL;
+	g_ADC_RESULT_CHANNEL_1 = ADCA.CH1.RESL;
 
 	// Store the upper four bits
-	g_ADC_RESULT[g_ADC_INDEX + 5 - 1] |= (ADCA.CH1.RESH << 8);
+	g_ADC_RESULT_CHANNEL_1 += (ADCA.CH1.RESH << 8);
 
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
 	
@@ -104,7 +105,7 @@ ISR(ADCA_CH1_vect) {
 
 // Counter overflow interrupt vector for the real-time clock
 ISR(RTC_OVF_vect) {
-	// After g_POLLING_INTERVAL seconds, record and display the data
+	// After t seconds, record and display the data
 	g_ADC_RECORD_FLAG = 1;
 
 	return;

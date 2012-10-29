@@ -26,12 +26,15 @@ void adc_start(uint8_t channel_0_pin, uint8_t channel_1_pin);
 // Used to retrieve factory calibration byte for the ADC
 uint8_t adc_read_calibration_byte(uint8_t address);
 
+
 // Global variables and flags redeclared to be used in ADC code
 volatile int g_ADC_RECORD_FLAG;
+
+// Channel results
+volatile int g_ADC_RESULT_CHANNEL_0;
+volatile int g_ADC_RESULT_CHANNEL_1;
+// Flag to signal when a conversion is complete on a channel
 volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_0;
 volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_1;
-
-volatile uint8_t g_ADC_INDEX;
-volatile int g_ADC_RESULT[10];
 
 #endif
