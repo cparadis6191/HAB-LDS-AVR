@@ -27,8 +27,8 @@ void adc_channel_init(void) {
 
 void adc_interrupt_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
-	ADCA.CH0.INTCTRL = ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
-	ADCA.CH1.INTCTRL = ( ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	ADCA.CH0.INTCTRL = (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	ADCA.CH1.INTCTRL = (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
 	
 	return;
 }
@@ -98,6 +98,7 @@ ISR(ADCA_CH1_vect) {
 	// Store the upper four bits
 	g_ADC_RESULT_CHANNEL_1 += (ADCA.CH1.RESH << 8);
 
+	// Mark the conversion as complete
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
 	
 	return;
