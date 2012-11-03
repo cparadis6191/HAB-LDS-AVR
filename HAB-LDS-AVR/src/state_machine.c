@@ -52,8 +52,6 @@ void state_machine(void) {
 				break;
 
 			case ST_POLLING_INIT:
-				lcd_clear_display();
-				fprintf(&LCD_STREAM, "IN ST_POLLING_INIT\r\n");
 				// Initialize EEPROM
 
 				// Initialize a channel
@@ -75,7 +73,6 @@ void state_machine(void) {
 				break;
 
 			case ST_POLLING:
-				fprintf(&LCD_STREAM, "IN ST_POLLING\r\n");
 				while (1) {
 					double sensor_results[10];
 
@@ -112,7 +109,7 @@ void state_machine(void) {
 					if (g_ADC_RECORD_FLAG) {
 						// Sum the x and y components of the vectors
 						lcd_clear_display();
-						//fprintf(&LCD_STREAM, "PA%i is %i", g_ADC_INDEX, g_ADC_RESULT[0]);
+						lcd_clear_display();
 						fprintf(&LCD_STREAM, "Angle: %f", resolve_angle(sensor_results));
 
 						// Reset the record flag and start polling again
@@ -123,15 +120,12 @@ void state_machine(void) {
 				break;
 
 			case ST_POLLING_DONE:
-				fprintf(&LCD_STREAM, "IN ST_POLLING_DONE\r\n");
-
 				// Return to the idle state after pin is added back
 				ST_STATE = ST_IDLE;
 				
 				break;
 
 			case ST_PC_INIT_COMM:
-				fprintf(&LCD_STREAM, "IN ST_POLLING_DONE\r\n");
 				// Wait for the PC_INIT byte
 				while(!(fgetc(&PC_STREAM) == PC_INIT));
 
@@ -162,31 +156,21 @@ void state_machine(void) {
 					
 					
 				}
-				/*
-				// Echo characters from the PC to the LCD
-				//fprintf(&LCD_STREAM, "%c", fgetc(&PC_STREAM));
-				while(1) {
-					fputc('U', &PC_STREAM);
-				}*/
-				
+
 				break;
 
 			case ST_PC_SEND_DATA:
-				fprintf(&PC_STREAM, "IN ST_PC_SEND_DATA\r\n");
 			
 				break;
 
 			case ST_PC_RECEIVE_SETTINGS:
-				fprintf(&PC_STREAM, "IN ST_PC_RECEIVE_SETTINGS\r\n");
 			
 				break;
 			
 			case ST_PC_DISCONNECT:
-				fprintf(&PC_STREAM, "IN ST_PC_DISCONNECT\r\n");
 			
 				break;
 			default:
-				fprintf(&PC_STREAM, "IN ST_DEFAULT\r\n");
 
 				break;
 		}
