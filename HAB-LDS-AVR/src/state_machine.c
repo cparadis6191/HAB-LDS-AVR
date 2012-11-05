@@ -1,8 +1,8 @@
 #include "state_machine.h"
 
 // Peripheral streams to print to
-static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTC0_putchar, USARTC0_getchar, _FDEV_SETUP_RW);
-static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTC1_putchar, USARTC1_getchar, _FDEV_SETUP_RW);
+static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTD0_putchar, USARTD0_getchar, _FDEV_SETUP_RW);
+static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTD1_putchar, USARTD1_getchar, _FDEV_SETUP_RW);
 
 // Global variable to hold the current state of the system
 volatile int ST_STATE = ST_INIT;
@@ -18,23 +18,19 @@ void state_machine(void) {
 				// Initialize the clocks				
 				// Initialize the main clock
 				clock_32MHz_init();
-
 				// Initialize the real-time clock
 				clock_32kHz_init();
-
-				// Initialize communication to the PC
-				USARTC0_init();
 				
 				// Initialize communication to the LCD
-				USARTC1_init();
+				USARTD0_init();
+				// Initialize communication to the PC
+				USARTD1_init();
 
 				// Configure the ADC
 				adc_init();
 
 				// Initialize the LCD
-				
 				lcd_init();
-				//lcd_backlight_on();
 
 				// Enable interrupts
 				main_interrupts_init();
@@ -62,13 +58,11 @@ void state_machine(void) {
 				adc_timer_init(1);
 
 				// Skip the if statement in ST_POLLING the first time
-				g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
-				g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
+				g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
+				g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
 				
 				// After things are initialized
 				ST_STATE = ST_POLLING;
-				// Temporarily skip to the PC communications state, cause no hardware is hooked up yet
-				ST_STATE = ST_PC_INIT_COMM;
 
 				break;
 
@@ -84,7 +78,7 @@ void state_machine(void) {
 							sensor_results[sensor_index + 5 - 1] = 0;
 
 						// Do four conversions and average the results
-						for (int sensor_sum_num = 0; sensor_sum_num < 5; sensor_sum_num++) {
+						for (int sensor_sum_num = 0; sensor_sum_num <= 4; sensor_sum_num++) {
 							// Starts a conversion on index n and n + 5
 							adc_start(sensor_index, sensor_index + 5);
 
@@ -101,16 +95,15 @@ void state_machine(void) {
 						}						
 
 						// Divide by 4 to get the average
-						sensor_results[sensor_index - 1] /= 4;
-						sensor_results[sensor_index + 5 - 1] /= 4;
+						//sensor_results[sensor_index - 1];
+						//sensor_results[sensor_index + 5 - 1];
 					}
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
 						// Sum the x and y components of the vectors
 						lcd_clear_display();
-						lcd_clear_display();
-						fprintf(&LCD_STREAM, "Angle: %f", resolve_angle(sensor_results));
+						fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;

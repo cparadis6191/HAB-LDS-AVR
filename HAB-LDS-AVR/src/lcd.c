@@ -1,7 +1,7 @@
 #include "lcd.h"
 
-// Use the UART lines in PORTC. PORTC[6:7]
-void USARTC1_init(void) {
+// Use the UART lines in PORTD. PORTD[2:3]
+void USARTD0_init(void) {
 	// Set TxD as output
 	PORTD.DIRSET |= PIN3_bm;
 	// Set the TxD pin value high
@@ -31,58 +31,58 @@ void USARTC1_init(void) {
 
 void lcd_init(void) {
 	// Put the LCD into a known state
-	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
-	USARTC1_putchar(SLCD_POWER_OFF, NULL);
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_POWER_OFF, NULL);
 
-	while (USARTC1_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
+	while (USARTD0_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
 
-	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
-	USARTC1_putchar(SLCD_POWER_ON, NULL);
-	USARTC1_putchar(SLCD_INIT_ACK, NULL);
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_POWER_ON, NULL);
+	USARTD0_putchar(SLCD_INIT_ACK, NULL);
 
 	// Wait
-	while (USARTC1_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
+	while (USARTD0_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
 	
 	// Put the LCD in character mode
-	USARTC1_putchar(SLCD_CHAR_HEADER, NULL);
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
 
 	return;
 }
 
 // Clear the display and put the cursor in the upper left
 void lcd_clear_display(void) {
-	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
-	USARTC1_putchar(SLCD_CLEAR_DISPLAY, NULL);
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_CLEAR_DISPLAY, NULL);
 
 	// Put the LCD back in character mode
-	USARTC1_putchar(SLCD_CHAR_HEADER, NULL);
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
 
 	return;
 }
 
 // Really don't want to use this, it kills battery
 void lcd_backlight_on(void) {
-	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
-	USARTC1_putchar(SLCD_BACKLIGHT_ON, NULL);
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_BACKLIGHT_ON, NULL);
 
 	// Put the LCD back in character mode
-	USARTC1_putchar(SLCD_CHAR_HEADER, NULL);
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
 
 	return;
 }
 
 void lcd_backlight_off(void) {
 	// Turn on the backlight
-	USARTC1_putchar(SLCD_CONTROL_HEADER, NULL);
-	USARTC1_putchar(SLCD_BACKLIGHT_OFF, NULL);
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_BACKLIGHT_OFF, NULL);
 
 	// Put the LCD back in character mode
-	USARTC1_putchar(SLCD_CHAR_HEADER, NULL);
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
 
 	return;
 }
 
-int USARTC1_putchar(char c, FILE *stream) {
+int USARTD0_putchar(char c, FILE *stream) {
 	// Wait until the transmit register is empty
 	while (!(USARTD0.STATUS & USART_DREIF_bm));
 	
@@ -92,7 +92,7 @@ int USARTC1_putchar(char c, FILE *stream) {
 	return 0;
 }
 
-int USARTC1_getchar(FILE *stream) {
+int USARTD0_getchar(FILE *stream) {
 	// Wait until the Receive complete interrupt flag is set
 	while (!(USARTD0.STATUS & USART_RXCIF_bm));
 	

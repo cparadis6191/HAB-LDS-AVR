@@ -18,9 +18,10 @@
 #define PC_COMM_CLOSE 0xFB
 
 
-void USARTC0_init(void);
-int USARTC0_putchar(char c, FILE *stream);
-int USARTC0_getchar(FILE *stream);
+// Use USARTD1 for communication, PD6 is Rx, PD7 is Tx
+void USARTD1_init(void);
+int USARTD1_putchar(char c, FILE *stream);
+int USARTD1_getchar(FILE *stream);
 
 // Initialize communication to the PC
 void pc_init(void);

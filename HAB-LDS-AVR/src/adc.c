@@ -11,10 +11,11 @@ void adc_init(void) {
 	// Set the reference to be AREFA on PA0
 	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
 
+	// This apparently broke our system
 	// Set the prescaler to be 512, running conversions at roughly 62.5kHz
 	// Conversions take 7 cycles to do
 	// This means we a conversion takes 112uS to do
-	ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
+	//ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
 
 	// Enable the Analog-to-Digital converter
 	ADCA.CTRLA |= ADC_ENABLE_bm;

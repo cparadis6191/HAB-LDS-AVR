@@ -6,9 +6,10 @@
 
 #include "lcd_library.h"
 
-void USARTC1_init(void);
-int USARTC1_putchar(char c, FILE *stream);
-int USARTC1_getchar(FILE *stream);
+// Use USARTD0 for communication, PD2 is Rx, PD3 is Tx
+void USARTD0_init(void);
+int USARTD0_putchar(char c, FILE *stream);
+int USARTD0_getchar(FILE *stream);
 
 // Initialize the LCD
 void lcd_init(void);
