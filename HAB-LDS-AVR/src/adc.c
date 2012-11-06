@@ -16,7 +16,7 @@ void adc_init(void) {
 
 	// Set the prescaler to be 32
 	// Changing from this prescaler (either higher or lower) will cause the ADC to not work
-	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc;
+	ADCA.PRESCALER = ADC_PRESCALER_DIV64_gc;
 
 	return;
 }

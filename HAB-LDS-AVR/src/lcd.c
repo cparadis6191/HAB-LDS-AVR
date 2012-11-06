@@ -9,9 +9,7 @@ void USARTD0_init(void) {
 	
 	// Values taken from http://www.avrcalc.elektronik-projekt.de/xmega/baud_rate_calculator
 	// Values for 9600 baud
-	int bsel = 3462;
-	// Manually raising the baudrate cause the frequency is probably drifting
-	bsel = 3717;
+	int bsel = 3317;
 	uint8_t bscale = -4;
 
 	// Set the baud rate and frame format

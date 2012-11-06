@@ -20,6 +20,8 @@ void state_machine(void) {
 				clock_32MHz_init();
 				// Initialize the real-time clock
 				clock_32kHz_init();
+				// Initialize DFLL to calibrate the 32MHz clock off of the 32kHz clock
+				clock_DFLL_init();
 				
 				// Initialize communication to the LCD
 				USARTD0_init();
@@ -44,6 +46,7 @@ void state_machine(void) {
 
 			case ST_IDLE:
 				ST_STATE = ST_POLLING_INIT;
+				ST_STATE = ST_PC_INIT_COMM;
 			
 				break;
 
@@ -89,8 +92,8 @@ void state_machine(void) {
 								g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
 
 								// Sum the results
-								sensor_results[sensor_index - 1] += g_ADC_RESULT_CHANNEL_0;
-								sensor_results[sensor_index + 5 - 1] += g_ADC_RESULT_CHANNEL_1;
+								sensor_results[sensor_index - 1] += g_ADC_RESULT_CHANNEL_0/4.0;
+								sensor_results[sensor_index + 5 - 1] += g_ADC_RESULT_CHANNEL_1/4.0;
 							}
 						}						
 
@@ -103,8 +106,9 @@ void state_machine(void) {
 					if (g_ADC_RECORD_FLAG) {
 						// Sum the x and y components of the vectors
 						lcd_clear_display();
+						lcd_clear_display();
 						//fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
-						fprintf(&LCD_STREAM, "Angle: %.1f,%.1f", sensor_results[0], resolve_angle(sensor_results));
+						fprintf(&LCD_STREAM, "Ang: %.1f,%.1f", sensor_results[0], resolve_angle(sensor_results));
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
@@ -187,10 +191,6 @@ void clock_32MHz_init(void) {
 	// Set system clock to 32MHz oscillator
 	CLK.CTRL = CLK_SCLKSEL_RC32M_gc;
 
-	// Enable the digital feedback locked loop calibration for the 32MHz clock
-	// The 32kHz clock also needs to be enabled for this to work
-	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
-
 	return;
 }
 
@@ -208,9 +208,18 @@ void clock_32kHz_init( void ) {
 	// select RTC clock source, 32.768kHz
 	CLK.RTCCTRL = (CLK_RTCSRC_RCOSC32_gc | CLK_RTCEN_bm);
 
-	// wait for RTC SYNC status not busy before returning
-	while ((RTC.STATUS & RTC_SYNCBUSY_bm));
+	return;
+}
 
+void clock_DFLL_init(void) {
+	// Set the DFLL source to the 32kHz RTC
+	//CLK.DFLLCTRL = OSC_RC32MCREF_RC32K_gc;
+
+	// Enable the digital feedback locked loop calibration for the 32MHz clock
+	// The 32kHz clock also needs to be enabled for this to work
+	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
+
+	
 	return;
 }
 

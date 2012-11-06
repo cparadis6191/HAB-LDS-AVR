@@ -39,6 +39,9 @@ void clock_32MHz_init(void);
 // Initialize the real-time clock
 void clock_32kHz_init(void);
 
+// Initialize DFLL
+void clock_DFLL_init(void);
+
 // Initialize interrupts
 void main_interrupts_init(void);
 
