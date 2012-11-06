@@ -1,24 +1,22 @@
 #include "adc.h"
 
 void adc_init(void) {
-	// Set the resolution of the ADC to be 12-bit, right-adjusted
-	// Unsigned by default
-	// read low ADCA calibration byte from NVM signature row into register
-	 ADCA.CALL = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
-	 // read high ADCA calibration byte from NVM signature row into register
-	 ADCA.CALH = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
+	// Enable the Analog-to-Digital converter
+	ADCA.CTRLA = ADC_ENABLE_bm;
 
 	// Set the reference to be AREFA on PA0
 	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
 
-	// This apparently broke our system
-	// Set the prescaler to be 512, running conversions at roughly 62.5kHz
-	// Conversions take 7 cycles to do
-	// This means we a conversion takes 112uS to do
-	//ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
+	// Set the resolution of the ADC to be 12-bit, right-adjusted
+	// Unsigned by default
+	// read low ADCA calibration byte from NVM signature row into register
+	ADCA.CALL = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+	// read high ADCA calibration byte from NVM signature row into register
+	ADCA.CALH = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 
-	// Enable the Analog-to-Digital converter
-	ADCA.CTRLA |= ADC_ENABLE_bm;
+	// Set the prescaler to be 32
+	// Changing from this prescaler (either higher or lower) will cause the ADC to not work
+	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc;
 
 	return;
 }
@@ -64,10 +62,7 @@ void adc_timer_init(int t) {
 
 	// Wait until the clock is synced
 	while ((RTC.STATUS & RTC_SYNCBUSY_bm));
-	RTC.PERL = (uint8_t) top;
-
-	while ((RTC.STATUS & RTC_SYNCBUSY_bm));
-	RTC.PERH = (top >> 8);
+	RTC.PER = top;
 
 	// Enable real-time counter overflow interrupts
 	RTC.INTCTRL = RTC_OVFINTLVL_LO_gc;
@@ -82,12 +77,9 @@ ISR(ADCA_CH0_vect) {
 	// Results are 12-bit right-adjusted
 	// AVRs have 16-bit integers
 
-	// Store the lower eight bits
-	g_ADC_RESULT_CHANNEL_0 = ADCA.CH0.RESL;
+	// Store the result back (taken from two registers)
+	g_ADC_RESULT_CHANNEL_0 = ADCA.CH0.RES;
 
-	// Store the upper four bits
-	g_ADC_RESULT_CHANNEL_0 += (ADCA.CH0.RESH << 8);
-	
 	// Mark the conversion as complete
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
 	
@@ -98,11 +90,8 @@ ISR(ADCA_CH1_vect) {
 	// Results are 12-bit right-adjusted
 	// AVRs have 16-bit integers
 
-	// Store the lower eight bits
-	g_ADC_RESULT_CHANNEL_1 = ADCA.CH1.RESL;
-
-	// Store the upper four bits
-	g_ADC_RESULT_CHANNEL_1 += (ADCA.CH1.RESH << 8);
+	// Store the result back (taken from two registers)
+	g_ADC_RESULT_CHANNEL_1 = ADCA.CH1.RES;
 
 	// Mark the conversion as complete
 	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;

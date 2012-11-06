@@ -10,6 +10,8 @@ void USARTD0_init(void) {
 	// Values taken from http://www.avrcalc.elektronik-projekt.de/xmega/baud_rate_calculator
 	// Values for 9600 baud
 	int bsel = 3462;
+	// Manually raising the baudrate cause the frequency is probably drifting
+	bsel = 3717;
 	uint8_t bscale = -4;
 
 	// Set the baud rate and frame format
@@ -34,12 +36,14 @@ void lcd_init(void) {
 	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
 	USARTD0_putchar(SLCD_POWER_OFF, NULL);
 
+	// Blocking call, need to fix
 	while (USARTD0_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
 
 	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
 	USARTD0_putchar(SLCD_POWER_ON, NULL);
 	USARTD0_putchar(SLCD_INIT_ACK, NULL);
 
+	// Another blocking call, could cause issues
 	// Wait
 	while (USARTD0_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
 	

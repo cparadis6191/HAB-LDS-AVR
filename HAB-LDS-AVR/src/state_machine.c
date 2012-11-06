@@ -103,7 +103,8 @@ void state_machine(void) {
 					if (g_ADC_RECORD_FLAG) {
 						// Sum the x and y components of the vectors
 						lcd_clear_display();
-						fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
+						//fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
+						fprintf(&LCD_STREAM, "Angle: %.1f,%.1f", sensor_results[0], resolve_angle(sensor_results));
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
@@ -119,6 +120,7 @@ void state_machine(void) {
 				break;
 
 			case ST_PC_INIT_COMM:
+				fprintf(&LCD_STREAM, "IN PCCOMM");
 				// Wait for the PC_INIT byte
 				while(!(fgetc(&PC_STREAM) == PC_INIT));
 
@@ -182,7 +184,6 @@ void clock_32MHz_init(void) {
 
 	// Allow changing of CLK.CTRL
 	CCP = CCP_IOREG_gc;
-
 	// Set system clock to 32MHz oscillator
 	CLK.CTRL = CLK_SCLKSEL_RC32M_gc;
 
@@ -202,6 +203,8 @@ void clock_32kHz_init( void ) {
 	// Wait until the 32kHz clock is ready
 	while (!(OSC.STATUS & OSC_RC32KRDY_bm));
 
+	// Allow changing of CLK.CTRL
+	CCP = CCP_IOREG_gc;
 	// select RTC clock source, 32.768kHz
 	CLK.RTCCTRL = (CLK_RTCSRC_RCOSC32_gc | CLK_RTCEN_bm);
 
@@ -221,17 +224,17 @@ void main_interrupts_init(void) {
 // Pass in a pointer to an array of length 10
 double resolve_angle(double *sensor_results) {
 	// Arrays holding the sensor x/y-component magnitudes
-	// Values calculated with Matlab sin(pi/180*(0:4)*36) and cos(pi/180*(0:4)*36)
-	const double sensor_x_component[10] = {1.0, 0.8090, 0.3090, -0.3090, -0.8090};
-	const double sensor_y_component[10] = {0.0, 0.5878, 0.9511, 0.9511, 0.5878};
+	// Values calculated with Matlab cos(pi/180*(0:4)*36) and sin(pi/180*(0:4)*36)
+	const double sensor_x_coeff[5] = {1.0, 0.8090, 0.3090, -0.3090, -0.8090};
+	const double sensor_y_coeff[5] = {0.0, 0.5878, 0.9511, 0.9511, 0.5878};
 
 	double interm_x = 0;
 	double interm_y = 0;
 	
 	for (int i = 0; i < 5; i++) {
 		// For each sensor, subtract opposite sensor and determine x/y-components
-		interm_x += sensor_x_component[i]*(sensor_results[i] - sensor_results[i + 5]);
-		interm_y += sensor_y_component[i]*(sensor_results[i] - sensor_results[i + 5]);
+		interm_x += sensor_x_coeff[i]*(sensor_results[i] - sensor_results[i + 5]);
+		interm_y += sensor_y_coeff[i]*(sensor_results[i] - sensor_results[i + 5]);
 	}
 
 	// Resolve the angle using arctangent and convert to an angle in degrees
