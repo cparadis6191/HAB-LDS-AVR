@@ -45,6 +45,9 @@ void clock_DFLL_init(void);
 // Initialize interrupts
 void main_interrupts_init(void);
 
+// Initialize the interrupts for the jumper and 3.3V line on the FT232 chip
+void input_init(void);
+
 // Resolve the angle from the 10 sensor results
 double resolve_angle(double *sensor_results);
 

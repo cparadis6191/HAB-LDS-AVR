@@ -34,12 +34,7 @@ void pc_interface_init(void) {
 	// Set the pin as an input
 	PORTC.DIRCLR |= PIN2_bm;
 	// Set PC2 to pulldown and sense rising edge signals
-	PORTC.PIN2CTRL = (PORT_OPC_PULLDOWN_gc | PORT_ISC_RISING_gc);
-		
-	// Set the interrupt to trigger off PC2 with INT0_vect
-	PORTC.INT0MASK = PIN2_bm;
-	// Set the interrupt to be low level
-	PORTC.INTCTRL = PORT_INT0LVL_LO_gc;
+	PORTC.PIN2CTRL = PORT_OPC_PULLDOWN_gc;
 
 	return;
 }
@@ -56,14 +51,12 @@ int USARTD1_putchar(char c, FILE *stream) {
 
 int USARTD1_getchar(FILE *streamvoid) {
 	// Wait until the Receive complete interrupt flag is set
-	while (!(USARTD1.STATUS & USART_RXCIF_bm));
+	//while (!(USARTD1.STATUS & USART_RXCIF_bm));
+	// Non-blocking version of USART_getchar. Need to test this.
+	if (!(USARTD1.STATUS & USART_RXCIF_bm)) {
+		return -1;
+	}
 	
 	// Read the data
 	return USARTD1.DATA;
-}
-
-// PORTC interrupt for PC2 to tell when the FT232 is hooked to a power source
-ISR(PORTC_INT0_vect) {
-
-	return;
 }

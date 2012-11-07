@@ -34,6 +34,11 @@ void state_machine(void) {
 				// Initialize the LCD
 				lcd_init();
 
+				// Initialize the jumper
+				input_init();
+				// Initialize the logic to determine when the FT232 chip is connected to a PC
+				pc_interface_init();
+
 				// Enable interrupts
 				main_interrupts_init();
 				// Enable global interrupts
@@ -45,8 +50,13 @@ void state_machine(void) {
 				break;
 
 			case ST_IDLE:
-				ST_STATE = ST_POLLING_INIT;
-				ST_STATE = ST_PC_INIT_COMM;
+				// If the jumper is removed,
+				if (!(PORTC.IN & PIN0_bm)) {
+					ST_STATE = ST_POLLING_INIT;
+				// Else check if the PC is connected
+				} else if (PORTC.IN & PIN2_bm) {
+					ST_STATE = ST_PC_INIT_COMM;
+				}
 			
 				break;
 
@@ -63,6 +73,7 @@ void state_machine(void) {
 				// Skip the if statement in ST_POLLING the first time
 				g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
 				g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
+				g_ADC_RECORD_FLAG = 0;
 				
 				// After things are initialized
 				ST_STATE = ST_POLLING;
@@ -71,6 +82,13 @@ void state_machine(void) {
 
 			case ST_POLLING:
 				while (1) {
+
+					if ((PORTC.IN & PIN0_bm)) {
+						ST_STATE = ST_POLLING_DONE;
+						
+						break;
+					}
+
 					double sensor_results[10];
 
 					// Iterate through each sensor and record data
@@ -96,10 +114,6 @@ void state_machine(void) {
 								sensor_results[sensor_index + 5 - 1] += g_ADC_RESULT_CHANNEL_1/4.0;
 							}
 						}						
-
-						// Divide by 4 to get the average
-						//sensor_results[sensor_index - 1];
-						//sensor_results[sensor_index + 5 - 1];
 					}
 
 					// Write the recorded angle to memory
@@ -108,7 +122,7 @@ void state_machine(void) {
 						lcd_clear_display();
 						lcd_clear_display();
 						//fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
-						fprintf(&LCD_STREAM, "Ang: %.1f,%.1f", sensor_results[0], resolve_angle(sensor_results));
+						fprintf(&LCD_STREAM, "Ang: %.1f", resolve_angle(sensor_results));
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
@@ -126,7 +140,7 @@ void state_machine(void) {
 			case ST_PC_INIT_COMM:
 				fprintf(&LCD_STREAM, "IN PCCOMM");
 				// Wait for the PC_INIT byte
-				while(!(fgetc(&PC_STREAM) == PC_INIT));
+				while(fgetc(&PC_STREAM) != PC_INIT);
 
 				// Send the acknowledgment
 				fputc(AVR_ACK, &PC_STREAM);
@@ -137,23 +151,28 @@ void state_machine(void) {
 				break;
 
 			case ST_PC_CONNECTED:
-				switch(fgetc(&PC_STREAM)) {
-					case PC_DATA_REQUEST_HEADER:
-						for (int i = 33; i <= 122; i++) {
-							fputc(i, &PC_STREAM);
-						}
+				while (1) {
+					if (!(PORTC.IN & PIN2_bm)) {
+						ST_STATE = ST_PC_INIT_COMM;
+					}					
 
-						// Send end of data signal
-						fputc(AVR_DATA_END_HEADER, &PC_STREAM);
-							
-						break;
-					
-					case PC_POLLING_INTERVAL_HEADER:
-						fprintf(&LCD_STREAM, "%i", fgetc(&PC_STREAM));
-							
-						break;
-					
-					
+					switch(fgetc(&PC_STREAM)) {
+						case PC_DATA_REQUEST_HEADER:
+							for (int i = 33; i <= 122; i++) {
+								fputc(i, &PC_STREAM);
+							}
+
+							// Send end of data signal
+							fputc(AVR_DATA_END_HEADER, &PC_STREAM);
+								
+							break;
+						
+						case PC_POLLING_INTERVAL_HEADER:
+							fprintf(&LCD_STREAM, "%i", fgetc(&PC_STREAM));
+								
+							break;
+						
+					}
 				}
 
 				break;
@@ -227,6 +246,15 @@ void main_interrupts_init(void) {
 	// Enable low/mid/high level global interrupts
 	PMIC.CTRL = (PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm);
 
+	return;
+}
+
+void input_init(void) {
+	// Set the jumper pin as an input
+	PORTC.DIRCLR |= PIN0_bm;
+	// Set PC0 to pulldown and sense rising edge signals
+	PORTC.PIN0CTRL = PORT_OPC_PULLDOWN_gc;
+	
 	return;
 }
 

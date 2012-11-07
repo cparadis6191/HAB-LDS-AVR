@@ -24,6 +24,6 @@ int USARTD1_putchar(char c, FILE *stream);
 int USARTD1_getchar(FILE *stream);
 
 // Initialize communication to the PC
-void pc_init(void);
+void pc_interface_init(void);
 
 #endif
