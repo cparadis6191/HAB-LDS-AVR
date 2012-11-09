@@ -25,8 +25,6 @@ enum {	ST_NULL = 0,
 		// Custom PC software states
 		ST_PC_INIT_COMM,
 		ST_PC_CONNECTED,
-		ST_PC_SEND_DATA,
-		ST_PC_RECEIVE_SETTINGS,
 		ST_PC_DISCONNECT };
 
 

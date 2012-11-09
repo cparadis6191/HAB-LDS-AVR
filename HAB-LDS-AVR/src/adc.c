@@ -78,10 +78,10 @@ ISR(ADCA_CH0_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the result back (taken from two registers)
-	g_ADC_RESULT_CHANNEL_0 = ADCA.CH0.RES;
+	g_ADC_CH0_RESULT = ADCA.CH0.RES;
 
 	// Mark the conversion as complete
-	g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 1;
+	g_ADC_CH0_COMPLETE = 1;
 	
 	return;
 }
@@ -91,10 +91,10 @@ ISR(ADCA_CH1_vect) {
 	// AVRs have 16-bit integers
 
 	// Store the result back (taken from two registers)
-	g_ADC_RESULT_CHANNEL_1 = ADCA.CH1.RES;
+	g_ADC_CH1_RESULT = ADCA.CH1.RES;
 
 	// Mark the conversion as complete
-	g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 1;
+	g_ADC_CH1_COMPLETE = 1;
 	
 	return;
 }

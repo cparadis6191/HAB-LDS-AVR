@@ -8,11 +8,13 @@ static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTD1_putchar, USARTD1_getchar, _FDE
 volatile int ST_STATE = ST_INIT;
 
 void state_machine(void) {
+	// Variable to hold the last location of data in EEPROM
+	int MEM_LOC = eeprom_read_word((void *) EEPROM_LAST_DATA);
+	int POLLING_INT = eeprom_read_byte((void *) EEPROM_POLLING_INTERVAL);
+
 	while (1) {
 		switch (ST_STATE) {
 			// Initialization state
-			// Initialize the clocks
-			// Initialize interrupts
 			// Go to the idle state after initialization
 			case ST_INIT:
 				// Initialize the clocks				
@@ -68,11 +70,11 @@ void state_machine(void) {
 				// Initialize adc interrupts
 				adc_interrupt_init();
 				// Enable the real-time clock and use it to generate interrupts every t seconds
-				adc_timer_init(1);
+				adc_timer_init(POLLING_INT);
 
 				// Skip the if statement in ST_POLLING the first time
-				g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
-				g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
+				g_ADC_CH0_COMPLETE = 0;
+				g_ADC_CH1_COMPLETE = 0;
 				g_ADC_RECORD_FLAG = 0;
 				
 				// After things are initialized
@@ -81,14 +83,8 @@ void state_machine(void) {
 				break;
 
 			case ST_POLLING:
-				while (1) {
-
-					if ((PORTC.IN & PIN0_bm)) {
-						ST_STATE = ST_POLLING_DONE;
-						
-						break;
-					}
-
+				// Poll the sensors until the jumper is added back
+				while (!(PORTC.IN & PIN0_bm)) {
 					double sensor_results[10];
 
 					// Iterate through each sensor and record data
@@ -104,30 +100,43 @@ void state_machine(void) {
 							adc_start(sensor_index, sensor_index + 5);
 
 							// Wait until the ISRs handle each ADC channel
-							if ((g_ADC_CONVERSION_COMPLETE_CHANNEL_0 && g_ADC_CONVERSION_COMPLETE_CHANNEL_1)) {
+							if ((g_ADC_CH0_COMPLETE && g_ADC_CH1_COMPLETE)) {
 								// Reset the conversion complete flags
-								g_ADC_CONVERSION_COMPLETE_CHANNEL_0 = 0;
-								g_ADC_CONVERSION_COMPLETE_CHANNEL_1 = 0;
+								g_ADC_CH0_COMPLETE = 0;
+								g_ADC_CH1_COMPLETE = 0;
 
 								// Sum the results
-								sensor_results[sensor_index - 1] += g_ADC_RESULT_CHANNEL_0/4.0;
-								sensor_results[sensor_index + 5 - 1] += g_ADC_RESULT_CHANNEL_1/4.0;
+								sensor_results[sensor_index - 1] += g_ADC_CH0_RESULT/4.0;
+								sensor_results[sensor_index + 5 - 1] += g_ADC_CH1_RESULT/4.0;
 							}
 						}						
 					}
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
-						// Sum the x and y components of the vectors
+						double current_angle = resolve_angle(sensor_results);
+
 						lcd_clear_display();
 						lcd_clear_display();
-						//fprintf(&LCD_STREAM, "Angle: %.1f", resolve_angle(sensor_results));
-						fprintf(&LCD_STREAM, "Ang: %.1f", resolve_angle(sensor_results));
+						fprintf(&LCD_STREAM, "Ang: %.1f", current_angle);
+
+						if (MEM_LOC <= (EEPROM_END - 1)) {
+							// Write the data to EEPROM
+							// Multiply by ten and store the result as an int so we can use only two bytes of storage
+							eeprom_write_word((void *) MEM_LOC, (int) (current_angle*10));
+							// Write to EEPROM and store the address of the latest angle
+							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
+
+							// Increment to point to the next data point
+							MEM_LOC += 2;
+						}
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
 					}
 				}
+
+				ST_STATE = ST_POLLING_DONE;
 
 				break;
 
@@ -138,7 +147,7 @@ void state_machine(void) {
 				break;
 
 			case ST_PC_INIT_COMM:
-				fprintf(&LCD_STREAM, "IN PCCOMM");
+				fprintf(&LCD_STREAM, "IN PC COMM");
 				// Wait for the PC_INIT byte
 				while(fgetc(&PC_STREAM) != PC_INIT);
 
@@ -151,41 +160,54 @@ void state_machine(void) {
 				break;
 
 			case ST_PC_CONNECTED:
-				while (1) {
-					if (!(PORTC.IN & PIN2_bm)) {
-						ST_STATE = ST_PC_INIT_COMM;
-					}					
+				// Get a command from the PC
+				switch(fgetc(&PC_STREAM)) {
+					case PC_DATA_REQUEST:
+						// Transmit data until the end of EEPROM or until the end of recorded memory
+						for (int i = EEPROM_DATA_START; (i <= MEM_LOC) || (i <= (EEPROM_END - 1)); i += 2) {
+							fprintf(&PC_STREAM, "%.1f\n", eeprom_read_word((void *) i)/10.0);
+						}
 
-					switch(fgetc(&PC_STREAM)) {
-						case PC_DATA_REQUEST_HEADER:
-							for (int i = 33; i <= 122; i++) {
-								fputc(i, &PC_STREAM);
-							}
+						// Send end of data signal
+						fputc(AVR_DATA_END, &PC_STREAM);
 
-							// Send end of data signal
-							fputc(AVR_DATA_END_HEADER, &PC_STREAM);
-								
-							break;
-						
-						case PC_POLLING_INTERVAL_HEADER:
-							fprintf(&LCD_STREAM, "%i", fgetc(&PC_STREAM));
-								
-							break;
-						
-					}
+						break;
+
+					case PC_POLLING_INTERVAL:
+						// Get the polling interval from the PC
+						POLLING_INT = fgetc(&PC_STREAM);
+
+						// Store the polling interval to EEPROM
+						eeprom_write_byte((void *) EEPROM_POLLING_INTERVAL, POLLING_INT);
+
+						break;
+
+					case PC_ERASE_DATA:
+						// Reset the EEPROM location to 2
+						MEM_LOC = EEPROM_DATA_START;
+						eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
+
+						break;
+
+					case PC_COMM_CLOSE:
+						ST_STATE = ST_PC_DISCONNECT;
+
+						break;
+
+					default:
+
+						break;
 				}
 
 				break;
 
-			case ST_PC_SEND_DATA:
-			
-				break;
-
-			case ST_PC_RECEIVE_SETTINGS:
-			
-				break;
-			
 			case ST_PC_DISCONNECT:
+				// Wait for the cable to be disconnected from the FT232
+				while (PORTC.IN & PIN2_bm);
+
+				fprintf(&LCD_STREAM, "leaving PC mode");
+
+				ST_STATE = ST_IDLE;
 			
 				break;
 			default:

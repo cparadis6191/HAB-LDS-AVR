@@ -31,10 +31,10 @@ uint8_t adc_read_calibration_byte(uint8_t address);
 volatile int g_ADC_RECORD_FLAG;
 
 // Channel results
-volatile int g_ADC_RESULT_CHANNEL_0;
-volatile int g_ADC_RESULT_CHANNEL_1;
+volatile int g_ADC_CH0_RESULT;
+volatile int g_ADC_CH1_RESULT;
 // Flag to signal when a conversion is complete on a channel
-volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_0;
-volatile int g_ADC_CONVERSION_COMPLETE_CHANNEL_1;
+volatile int g_ADC_CH0_COMPLETE;
+volatile int g_ADC_CH1_COMPLETE;
 
 #endif

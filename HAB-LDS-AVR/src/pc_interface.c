@@ -51,11 +51,7 @@ int USARTD1_putchar(char c, FILE *stream) {
 
 int USARTD1_getchar(FILE *streamvoid) {
 	// Wait until the Receive complete interrupt flag is set
-	//while (!(USARTD1.STATUS & USART_RXCIF_bm));
-	// Non-blocking version of USART_getchar. Need to test this.
-	if (!(USARTD1.STATUS & USART_RXCIF_bm)) {
-		return -1;
-	}
+	while (!(USARTD1.STATUS & USART_RXCIF_bm));
 	
 	// Read the data
 	return USARTD1.DATA;
