@@ -147,7 +147,6 @@ void state_machine(void) {
 				break;
 
 			case ST_PC_INIT_COMM:
-				fprintf(&LCD_STREAM, "IN PC COMM");
 				// Wait for the PC_INIT byte
 				while(fgetc(&PC_STREAM) != PC_INIT);
 
@@ -164,8 +163,8 @@ void state_machine(void) {
 				switch(fgetc(&PC_STREAM)) {
 					case PC_DATA_REQUEST:
 						// Transmit data until the end of EEPROM or until the end of recorded memory
-						for (int i = EEPROM_DATA_START; (i <= MEM_LOC) || (i <= (EEPROM_END - 1)); i += 2) {
-							fprintf(&PC_STREAM, "%.1f\n", eeprom_read_word((void *) i)/10.0);
+						for (int i = EEPROM_DATA_START; i < MEM_LOC; i += 2) {
+							fprintf(&PC_STREAM, "%.1f\n", (int) eeprom_read_word((void *) i)/10.0);
 						}
 
 						// Send end of data signal
@@ -185,6 +184,8 @@ void state_machine(void) {
 					case PC_ERASE_DATA:
 						// Reset the EEPROM location to 2
 						MEM_LOC = EEPROM_DATA_START;
+
+						// Write it to EEPROM
 						eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
 
 						break;
@@ -204,8 +205,6 @@ void state_machine(void) {
 			case ST_PC_DISCONNECT:
 				// Wait for the cable to be disconnected from the FT232
 				while (PORTC.IN & PIN2_bm);
-
-				fprintf(&LCD_STREAM, "leaving PC mode");
 
 				ST_STATE = ST_IDLE;
 			
