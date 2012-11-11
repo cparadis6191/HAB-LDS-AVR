@@ -86,8 +86,15 @@ void state_machine(void) {
 			case ST_POLLING:
 				// Poll the sensors until the jumper is added back
 				while (!(PORTC.IN & PIN0_bm)) {
-					double sensor_results[10];
+					int sensor_results[10];
 					double current_angle;
+
+					// Pin numbers for channel 0 and channel 1
+					// Channel 0 takes care of the first 5 sensors
+					// Channel 1 takes care of the second 5 sensors
+					// Pin 6 is broken and won't work properly, so Pin 11 is used instead
+					int CH0_pin_num[5] = {1, 2, 3, 4, 5};
+					int CH1_pin_num[5] = {11, 7, 8, 9, 10};
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
@@ -101,7 +108,7 @@ void state_machine(void) {
 							// Do four conversions and average the results
 							for (int sensor_sum_num = 0; sensor_sum_num <= 4; sensor_sum_num++) {
 								// Starts a conversion on index n and n + 5
-								adc_start(sensor_index, sensor_index + 5);
+								adc_start(CH0_pin_num[sensor_index - 1], CH1_pin_num[sensor_index - 1]);
 
 								// Wait until the ISRs handle each ADC channel
 								if ((g_ADC_CH0_COMPLETE && g_ADC_CH1_COMPLETE)) {
@@ -110,8 +117,8 @@ void state_machine(void) {
 									g_ADC_CH1_COMPLETE = 0;
 
 									// Sum the results
-									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT - 180)/4.0;
-									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT - 180)/4.0;
+									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT)/4.0;
+									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT)/4.0;
 								}
 							}
 						}
@@ -121,7 +128,7 @@ void state_machine(void) {
 						lcd_clear_display();
 						lcd_clear_display();
 						fprintf(&LCD_STREAM, "Ang: %.1f", current_angle);
-						//fprintf(&LCD_STREAM, "ADC: %.1f", sensor_results[0]);
+						//fprintf(&LCD_STREAM, "%i,%i,%i", sensor_results[5], sensor_results[6], sensor_results[7]);
 
 						if (MEM_LOC <= (EEPROM_END - 1)) {
 							// Write the data to EEPROM
@@ -255,9 +262,6 @@ void clock_32kHz_init( void ) {
 }
 
 void clock_DFLL_init(void) {
-	// Set the DFLL source to the 32kHz RTC
-	CLK.DFLLCTRL = OSC_RC32MCREF_RC32K_gc;
-
 	// Enable the digital feedback locked loop calibration for the 32MHz clock
 	// The 32kHz clock also needs to be enabled for this to work
 	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
@@ -282,7 +286,7 @@ void input_init(void) {
 }
 
 // Pass in a pointer to an array of length 10
-double resolve_angle(double *sensor_results) {
+double resolve_angle(int *sensor_results) {
 	// Arrays holding the sensor x/y-component magnitudes
 	// Values calculated with Matlab cos(pi/180*(0:4)*36) and sin(pi/180*(0:4)*36)
 	const double sensor_x_coeff[5] = {1.0, 0.8090, 0.3090, -0.3090, -0.8090};

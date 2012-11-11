@@ -47,6 +47,6 @@ void main_interrupts_init(void);
 void input_init(void);
 
 // Resolve the angle from the 10 sensor results
-double resolve_angle(double *sensor_results);
+double resolve_angle(int *sensor_results);
 
 #endif

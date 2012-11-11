@@ -4,20 +4,21 @@ void adc_init(void) {
 	// Set the resolution of the ADC to be 12-bit, right-adjusted
 	// Unsigned by default
 
-	// Enable the Analog-to-Digital converter
-	ADCA.CTRLA = ADC_ENABLE_bm;
-
 	// Set the reference to be AREFA on PA0
-	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
+	ADCA.REFCTRL = (ADC_REFSEL_AREFA_gc | ADC_BANDGAP_bm);
+
+	// Set the prescaler to be 32
+	// Changing from this prescaler (either higher or lower) will cause the ADC to not work
+	// Prescaler of 128 brings the ADC clock down to 250kHz
+	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc;
 
 	// read low ADCA calibration byte from NVM signature row into register
 	ADCA.CALL = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	// read high ADCA calibration byte from NVM signature row into register
 	ADCA.CALH = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 
-	// Set the prescaler to be 32
-	// Changing from this prescaler (either higher or lower) will cause the ADC to not work
-	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc;
+	// Enable the Analog-to-Digital converter
+	ADCA.CTRLA = ADC_ENABLE_bm;
 
 	return;
 }
