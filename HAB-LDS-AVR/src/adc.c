@@ -1,14 +1,15 @@
 #include "adc.h"
 
 void adc_init(void) {
+	// Set the resolution of the ADC to be 12-bit, right-adjusted
+	// Unsigned by default
+
 	// Enable the Analog-to-Digital converter
 	ADCA.CTRLA = ADC_ENABLE_bm;
 
 	// Set the reference to be AREFA on PA0
 	ADCA.REFCTRL = ADC_REFSEL_AREFA_gc;
 
-	// Set the resolution of the ADC to be 12-bit, right-adjusted
-	// Unsigned by default
 	// read low ADCA calibration byte from NVM signature row into register
 	ADCA.CALL = adc_read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	// read high ADCA calibration byte from NVM signature row into register
@@ -16,7 +17,7 @@ void adc_init(void) {
 
 	// Set the prescaler to be 32
 	// Changing from this prescaler (either higher or lower) will cause the ADC to not work
-	ADCA.PRESCALER = ADC_PRESCALER_DIV64_gc;
+	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc;
 
 	return;
 }

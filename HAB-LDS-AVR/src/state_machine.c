@@ -70,7 +70,8 @@ void state_machine(void) {
 				// Initialize adc interrupts
 				adc_interrupt_init();
 				// Enable the real-time clock and use it to generate interrupts every t seconds
-				adc_timer_init(POLLING_INT);
+				//adc_timer_init(POLLING_INT);
+				adc_timer_init(1);
 
 				// Skip the if statement in ST_POLLING the first time
 				g_ADC_CH0_COMPLETE = 0;
@@ -86,39 +87,41 @@ void state_machine(void) {
 				// Poll the sensors until the jumper is added back
 				while (!(PORTC.IN & PIN0_bm)) {
 					double sensor_results[10];
-
-					// Iterate through each sensor and record data
-					// Use two channels to get data from
-					// Start at 1 because PA0 is a reference
-					for (int sensor_index = 1; sensor_index <= 5; sensor_index++) {
-							sensor_results[sensor_index - 1] = 0;
-							sensor_results[sensor_index + 5 - 1] = 0;
-
-						// Do four conversions and average the results
-						for (int sensor_sum_num = 0; sensor_sum_num <= 4; sensor_sum_num++) {
-							// Starts a conversion on index n and n + 5
-							adc_start(sensor_index, sensor_index + 5);
-
-							// Wait until the ISRs handle each ADC channel
-							if ((g_ADC_CH0_COMPLETE && g_ADC_CH1_COMPLETE)) {
-								// Reset the conversion complete flags
-								g_ADC_CH0_COMPLETE = 0;
-								g_ADC_CH1_COMPLETE = 0;
-
-								// Sum the results
-								sensor_results[sensor_index - 1] += g_ADC_CH0_RESULT/4.0;
-								sensor_results[sensor_index + 5 - 1] += g_ADC_CH1_RESULT/4.0;
-							}
-						}						
-					}
+					double current_angle;
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
-						double current_angle = resolve_angle(sensor_results);
+						// Iterate through each sensor and record data
+						// Use two channels to get data from
+						// Start at 1 because PA0 is a reference
+						for (int sensor_index = 1; sensor_index <= 5; sensor_index++) {
+								sensor_results[sensor_index - 1] = 0;
+								sensor_results[sensor_index + 5 - 1] = 0;
+
+							// Do four conversions and average the results
+							for (int sensor_sum_num = 0; sensor_sum_num <= 4; sensor_sum_num++) {
+								// Starts a conversion on index n and n + 5
+								adc_start(sensor_index, sensor_index + 5);
+
+								// Wait until the ISRs handle each ADC channel
+								if ((g_ADC_CH0_COMPLETE && g_ADC_CH1_COMPLETE)) {
+									// Reset the conversion complete flags
+									g_ADC_CH0_COMPLETE = 0;
+									g_ADC_CH1_COMPLETE = 0;
+
+									// Sum the results
+									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT - 180)/4.0;
+									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT - 180)/4.0;
+								}
+							}
+						}
+
+						current_angle = resolve_angle(sensor_results);
 
 						lcd_clear_display();
 						lcd_clear_display();
 						fprintf(&LCD_STREAM, "Ang: %.1f", current_angle);
+						//fprintf(&LCD_STREAM, "ADC: %.1f", sensor_results[0]);
 
 						if (MEM_LOC <= (EEPROM_END - 1)) {
 							// Write the data to EEPROM
@@ -253,19 +256,18 @@ void clock_32kHz_init( void ) {
 
 void clock_DFLL_init(void) {
 	// Set the DFLL source to the 32kHz RTC
-	//CLK.DFLLCTRL = OSC_RC32MCREF_RC32K_gc;
+	CLK.DFLLCTRL = OSC_RC32MCREF_RC32K_gc;
 
 	// Enable the digital feedback locked loop calibration for the 32MHz clock
 	// The 32kHz clock also needs to be enabled for this to work
 	DFLLRC32M.CTRL = DFLL_ENABLE_bm;
 
-	
 	return;
 }
 
 void main_interrupts_init(void) {
 	// Enable low/mid/high level global interrupts
-	PMIC.CTRL = (PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm);
+	PMIC.CTRL = PMIC_LOLVLEN_bm;
 
 	return;
 }
@@ -275,7 +277,7 @@ void input_init(void) {
 	PORTC.DIRCLR |= PIN0_bm;
 	// Set PC0 to pulldown and sense rising edge signals
 	PORTC.PIN0CTRL = PORT_OPC_PULLDOWN_gc;
-	
+
 	return;
 }
 
