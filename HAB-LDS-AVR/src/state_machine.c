@@ -41,6 +41,9 @@ void state_machine(void) {
 				// Initialize the logic to determine when the FT232 chip is connected to a PC
 				pc_interface_init();
 
+				PORTC.DIRSET |= PIN1_bm;
+				PORTC.OUTSET |= PIN1_bm;
+
 				// Enable interrupts
 				main_interrupts_init();
 				// Enable global interrupts
@@ -70,8 +73,7 @@ void state_machine(void) {
 				// Initialize adc interrupts
 				adc_interrupt_init();
 				// Enable the real-time clock and use it to generate interrupts every t seconds
-				//adc_timer_init(POLLING_INT);
-				adc_timer_init(1);
+				adc_timer_init(POLLING_INT);
 
 				// Skip the if statement in ST_POLLING the first time
 				g_ADC_CH0_COMPLETE = 0;
@@ -106,7 +108,7 @@ void state_machine(void) {
 								sensor_results[sensor_index + 5 - 1] = 0;
 
 							// Do four conversions and average the results
-							for (int sensor_sum_num = 0; sensor_sum_num <= 4; sensor_sum_num++) {
+							for (int sensor_sum_num = 0; sensor_sum_num < 50; sensor_sum_num++) {
 								// Starts a conversion on index n and n + 5
 								adc_start(CH0_pin_num[sensor_index - 1], CH1_pin_num[sensor_index - 1]);
 
@@ -117,34 +119,47 @@ void state_machine(void) {
 									g_ADC_CH1_COMPLETE = 0;
 
 									// Sum the results
-									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT)/4.0;
-									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT)/4.0;
+									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT)/50.0;
+									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT)/50.0;
 								}
 							}
 						}
 
 						current_angle = resolve_angle(sensor_results);
 
-						lcd_clear_display();
-						lcd_clear_display();
-						fprintf(&LCD_STREAM, "Ang: %.1f", current_angle);
-						//fprintf(&LCD_STREAM, "%i,%i,%i", sensor_results[5], sensor_results[6], sensor_results[7]);
-
-						if (MEM_LOC <= (EEPROM_END - 1)) {
+						if (MEM_LOC <= (EEPROM_END - 3)) {
 							// Write the data to EEPROM
 							// Multiply by ten and store the result as an int so we can use only two bytes of storage
 							eeprom_write_word((void *) MEM_LOC, (int) (current_angle*10));
-							// Write to EEPROM and store the address of the latest angle
-							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
 
 							// Increment to point to the next data point
 							MEM_LOC += 2;
+
+							// Write to EEPROM and store the address of the latest angle
+							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
+
+
+							// Toggle the LED
+							PORTC.OUTTGL |= PIN1_bm;
 						}
+						lcd_init();
+
+						// Print the latest polled angle
+						lcd_clear_display();
+						lcd_clear_display();
+						fprintf(&LCD_STREAM, "Ang:%.1f,%.1f", current_angle, (int) (eeprom_read_word((void *) MEM_LOC - 2))/10.0);
+
+						// Print the polling interval to the second line of the LCD
+						lcd_cursor_set(0, 1);
+						fprintf(&LCD_STREAM, "Polling: %i sec", POLLING_INT);
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
 					}
 				}
+
+				// Turn off the LED
+				PORTC.OUTSET |= PIN1_bm;
 
 				ST_STATE = ST_POLLING_DONE;
 
@@ -175,7 +190,13 @@ void state_machine(void) {
 						// Transmit data until the end of EEPROM or until the end of recorded memory
 						for (int i = EEPROM_DATA_START; i < MEM_LOC; i += 2) {
 							fprintf(&PC_STREAM, "%.1f\n", (int) eeprom_read_word((void *) i)/10.0);
+
+							// Toggle the LED
+							PORTC.OUTTGL |= PIN1_bm;
 						}
+
+						// Turn off the LED
+						PORTC.OUTSET |= PIN1_bm;
 
 						// Send end of data signal
 						fputc(AVR_DATA_END, &PC_STREAM);
@@ -189,10 +210,14 @@ void state_machine(void) {
 						// Store the polling interval to EEPROM
 						eeprom_write_byte((void *) EEPROM_POLLING_INTERVAL, POLLING_INT);
 
+						// Print the polling interval to the second line of the LCD
+						lcd_cursor_set(0, 1);
+						fprintf(&LCD_STREAM, "Polling: %i sec", POLLING_INT);
+
 						break;
 
 					case PC_ERASE_DATA:
-						// Reset the EEPROM location to 2
+						// Reset the EEPROM location to 4
 						MEM_LOC = EEPROM_DATA_START;
 
 						// Write it to EEPROM
@@ -281,6 +306,9 @@ void input_init(void) {
 	PORTC.DIRCLR |= PIN0_bm;
 	// Set PC0 to pulldown and sense rising edge signals
 	PORTC.PIN0CTRL = PORT_OPC_PULLDOWN_gc;
+
+	// Set the LED pin as an ouput
+	PORTC.DIRSET |= PIN1_bm;
 
 	return;
 }

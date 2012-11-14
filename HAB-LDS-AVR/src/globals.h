@@ -1,6 +1,8 @@
 #ifndef __GLOBALS_H_
 #define __GLOBALS_H_
 
+#define F_CPU 32000000UL
+
 // Declare global flags indicating when to start an ADC conversion
 // Will be controlled by a timer
 extern volatile int g_ADC_RECORD_FLAG;

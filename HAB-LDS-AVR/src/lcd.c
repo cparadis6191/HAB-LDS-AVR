@@ -30,20 +30,25 @@ void USARTD0_init(void) {
 }
 
 void lcd_init(void) {
+	// Delay until USART is ready
+	_delay_ms(150);
+
 	// Put the LCD into a known state
 	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
 	USARTD0_putchar(SLCD_POWER_OFF, NULL);
 
 	// Blocking call, need to fix
-	while (USARTD0_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
-
+	//while (USARTD0_getchar(NULL) != UART_READY);// if (TIMEOUT) break;
 	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
 	USARTD0_putchar(SLCD_POWER_ON, NULL);
 	USARTD0_putchar(SLCD_INIT_ACK, NULL);
 
+	// LCD module needs at least 150ms to initialize
+	_delay_ms(160);
+
 	// Another blocking call, could cause issues
 	// Wait
-	while (USARTD0_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
+	//while (USARTD0_getchar(NULL) != SLCD_INIT_DONE);// if (TIMEOUT) break;
 	
 	// Put the LCD in character mode
 	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
@@ -81,6 +86,23 @@ void lcd_backlight_off(void) {
 	// Put the LCD back in character mode
 	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
 
+	return;
+}
+
+void lcd_cursor_set(int x, int y) {
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	// Send the cursor header
+	USARTD0_putchar(SLCD_CURSOR_HEADER, NULL);
+
+	//while (USARTD0_getchar(NULL) != SLCD_CURSOR_ACK);// if (TIMEOUT) break;
+
+	// Send the coordinates to move the cursor to
+	USARTD0_putchar(x, NULL);
+	USARTD0_putchar(y, NULL);
+
+	// Put the LCD back in character mode
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
+	
 	return;
 }
 

@@ -1,10 +1,12 @@
 #ifndef __LCD_USART_H_
 #define __LCD_USART_H_
 
+#include "globals.h"
+#include "lcd_library.h"
+
 #include <stdio.h>
 #include <avr/io.h>
-
-#include "lcd_library.h"
+#include <util/delay.h>
 
 // Use USARTD0 for communication, PD2 is Rx, PD3 is Tx
 void USARTD0_init(void);
@@ -18,5 +20,6 @@ void lcd_init(void);
 void lcd_clear_display(void);
 void lcd_backlight_off(void);
 void lcd_backlight_on(void);
+void lcd_cursor_set(int x, int y);
 
 #endif
