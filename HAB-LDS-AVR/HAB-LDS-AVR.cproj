@@ -66,6 +66,7 @@
       </ToolOptions>
     </com_atmel_avrdbg_tool_avrdragon>
     <preserveEEPROM>True</preserveEEPROM>
+    <AsfVersion>3.5.1</AsfVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -143,7 +144,10 @@
     <Compile Include="src\lcd.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\storage.c">
+    <Compile Include="src\sd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\sd.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\storage.h">

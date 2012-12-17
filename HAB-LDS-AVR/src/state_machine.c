@@ -41,9 +41,6 @@ void state_machine(void) {
 				// Initialize the logic to determine when the FT232 chip is connected to a PC
 				pc_interface_init();
 
-				PORTC.DIRSET |= PIN1_bm;
-				PORTC.OUTSET |= PIN1_bm;
-
 				// Enable interrupts
 				main_interrupts_init();
 				// Enable global interrupts
@@ -56,18 +53,24 @@ void state_machine(void) {
 
 			case ST_IDLE:
 				// If the jumper is removed,
-				if (!(PORTC.IN & PIN0_bm)) {
+				if (!(JUMPER_ON)) {
+					// Initialize the LCD, need to change this to be initialized on an interrupt
+					lcd_init();
+
 					ST_STATE = ST_POLLING_INIT;
+
 				// Else check if the PC is connected
-				} else if (PORTC.IN & PIN2_bm) {
+				} else if (LCD_POWER) {
+
+					// Initialize the LCD, need to change this to be initialized on an interrupt
+					lcd_init();
+
 					ST_STATE = ST_PC_INIT_COMM;
 				}
 			
 				break;
 
 			case ST_POLLING_INIT:
-				// Initialize EEPROM
-
 				// Initialize a channel
 				adc_channel_init();
 				// Initialize adc interrupts
@@ -87,7 +90,7 @@ void state_machine(void) {
 
 			case ST_POLLING:
 				// Poll the sensors until the jumper is added back
-				while (!(PORTC.IN & PIN0_bm)) {
+				while (!(JUMPER_ON)) {
 					int sensor_results[10];
 					double current_angle;
 
@@ -142,16 +145,15 @@ void state_machine(void) {
 							// Toggle the LED
 							PORTC.OUTTGL |= PIN1_bm;
 						}
-						lcd_init();
 
 						// Print the latest polled angle
 						lcd_clear_display();
-						lcd_clear_display();
+						lcd_return_home();
 						fprintf(&LCD_STREAM, "Ang:%.1f,%.1f", current_angle, (int) (eeprom_read_word((void *) MEM_LOC - 2))/10.0);
 
 						// Print the polling interval to the second line of the LCD
 						lcd_cursor_set(0, 1);
-						fprintf(&LCD_STREAM, "Polling: %i sec", POLLING_INT);
+						fprintf(&LCD_STREAM, "Polling:%i sec", POLLING_INT);
 
 						// Reset the record flag and start polling again
 						g_ADC_RECORD_FLAG = 0;
@@ -239,11 +241,12 @@ void state_machine(void) {
 
 			case ST_PC_DISCONNECT:
 				// Wait for the cable to be disconnected from the FT232
-				while (PORTC.IN & PIN2_bm);
+				while (PC_POWER);
 
 				ST_STATE = ST_IDLE;
 			
 				break;
+				
 			default:
 
 				break;
@@ -307,8 +310,9 @@ void input_init(void) {
 	// Set PC0 to pulldown and sense rising edge signals
 	PORTC.PIN0CTRL = PORT_OPC_PULLDOWN_gc;
 
-	// Set the LED pin as an ouput
+	// Set the LED to an output, turn it off
 	PORTC.DIRSET |= PIN1_bm;
+	PORTC.OUTSET |= PIN1_bm;
 
 	return;
 }

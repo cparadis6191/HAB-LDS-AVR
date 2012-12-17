@@ -13,6 +13,8 @@
 #include "pc_interface.h"
 #include "storage.h"
 
+#define JUMPER_ON PORTC.IN & PIN0_bm
+
 // Enumerated states
 enum {	ST_NULL = 0,
 		ST_INIT,

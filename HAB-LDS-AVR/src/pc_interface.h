@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <avr/io.h>
 
+#define PC_POWER PORTC.IN & PIN0_bm
+
 // PC starts by sending an initialization byte
 #define PC_INIT 0xAB
 // AVR sends back an acknowledgment byte

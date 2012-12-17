@@ -67,6 +67,17 @@ void lcd_clear_display(void) {
 	return;
 }
 
+// Clear the display and put the cursor in the upper left
+void lcd_return_home(void) {
+	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
+	USARTD0_putchar(SLCD_RETURN_HOME, NULL);
+
+	// Put the LCD back in character mode
+	USARTD0_putchar(SLCD_CHAR_HEADER, NULL);
+
+	return;
+}
+
 // Really don't want to use this, it kills battery
 void lcd_backlight_on(void) {
 	USARTD0_putchar(SLCD_CONTROL_HEADER, NULL);
