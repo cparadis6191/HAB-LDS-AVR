@@ -11,6 +11,7 @@ void state_machine(void) {
 	// Variable to hold the last location of data in EEPROM
 	int MEM_LOC = eeprom_read_word((void *) EEPROM_LAST_DATA);
 	int POLLING_INT = eeprom_read_byte((void *) EEPROM_POLLING_INTERVAL);
+	
 
 	while (1) {
 		switch (ST_STATE) {
@@ -54,21 +55,15 @@ void state_machine(void) {
 			case ST_IDLE:
 				// If the jumper is removed,
 				if (!(JUMPER_ON)) {
-					// Initialize the LCD, need to change this to be initialized on an interrupt
-					lcd_init();
-
 					ST_STATE = ST_POLLING_INIT;
 
 				// Else check if the PC is connected
-				} else if (LCD_POWER) {
-
-					// Initialize the LCD, need to change this to be initialized on an interrupt
-					lcd_init();
-
+				} else if (PC_POWER) {
 					ST_STATE = ST_PC_INIT_COMM;
 				}
 			
 				break;
+
 
 			case ST_POLLING_INIT:
 				// Initialize a channel
@@ -89,8 +84,7 @@ void state_machine(void) {
 				break;
 
 			case ST_POLLING:
-				// Poll the sensors until the jumper is added back
-				while (!(JUMPER_ON)) {
+				{
 					int sensor_results[10];
 					double current_angle;
 
@@ -163,9 +157,13 @@ void state_machine(void) {
 				// Turn off the LED
 				PORTC.OUTSET |= PIN1_bm;
 
-				ST_STATE = ST_POLLING_DONE;
+				if (JUMPER_ON) {
+					// If the jumper is on, stop polling
+					ST_STATE = ST_POLLING_DONE;
+				}				
 
 				break;
+
 
 			case ST_POLLING_DONE:
 				// Return to the idle state after pin is added back
@@ -173,17 +171,30 @@ void state_machine(void) {
 				
 				break;
 
+
 			case ST_PC_INIT_COMM:
-				// Wait for the PC_INIT byte
-				while(fgetc(&PC_STREAM) != PC_INIT);
+				{
+					int pc_byte = 0;
+					
+					// Wait for the PC_INIT byte
+					while (pc_byte != PC_INIT) {
+						if (pc_byte == -1) {
+							// If error is returned, break out of the state
+							ST_STATE = ST_PC_DISCONNECT;
+							
+							break;
+						}
+					} 
 
-				// Send the acknowledgment
-				fputc(AVR_ACK, &PC_STREAM);
+					// Send the acknowledgment
+					fputc(AVR_ACK, &PC_STREAM);
 
-				// Go to the ST_PC_CONNECTED state after initialization
-				ST_STATE = ST_PC_CONNECTED;
+					// Go to the ST_PC_CONNECTED state after initialization
+					ST_STATE = ST_PC_CONNECTED;
+					
+					break;
+				}					
 
-				break;
 
 			case ST_PC_CONNECTED:
 				// Get a command from the PC
@@ -205,6 +216,7 @@ void state_machine(void) {
 
 						break;
 
+
 					case PC_POLLING_INTERVAL:
 						// Get the polling interval from the PC
 						POLLING_INT = fgetc(&PC_STREAM);
@@ -218,6 +230,7 @@ void state_machine(void) {
 
 						break;
 
+
 					case PC_ERASE_DATA:
 						// Reset the EEPROM location to 4
 						MEM_LOC = EEPROM_DATA_START;
@@ -227,25 +240,24 @@ void state_machine(void) {
 
 						break;
 
-					case PC_COMM_CLOSE:
-						ST_STATE = ST_PC_DISCONNECT;
-
-						break;
 
 					default:
 
 						break;
 				}
+				
+				// Exit the PC communication state machine
+				ST_STATE = ST_PC_DISCONNECT;
 
 				break;
 
+
 			case ST_PC_DISCONNECT:
-				// Wait for the cable to be disconnected from the FT232
-				while (PC_POWER);
 
 				ST_STATE = ST_IDLE;
 			
 				break;
+				
 				
 			default:
 

@@ -51,7 +51,10 @@ int USARTD1_putchar(char c, FILE *stream) {
 
 int USARTD1_getchar(FILE *streamvoid) {
 	// Wait until the Receive complete interrupt flag is set
-	while (!(USARTD1.STATUS & USART_RXCIF_bm));
+	while (!(USARTD1.STATUS & USART_RXCIF_bm)) {
+		// If the PC is disconnected, break out and return an error
+		if (!PC_POWER) return -1;
+	}
 	
 	// Read the data
 	return USARTD1.DATA;
