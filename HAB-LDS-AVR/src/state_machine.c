@@ -54,7 +54,7 @@ void state_machine(void) {
 
 			case ST_IDLE:
 				// If the jumper is removed,
-				if (!(JUMPER_ON)) {
+				if (!JUMPER_ON) {
 					ST_STATE = ST_POLLING_INIT;
 
 				// Else check if the PC is connected
@@ -154,12 +154,12 @@ void state_machine(void) {
 					}
 				}
 
-				// Turn off the LED
-				PORTC.OUTSET |= PIN1_bm;
-
 				if (JUMPER_ON) {
 					// If the jumper is on, stop polling
 					ST_STATE = ST_POLLING_DONE;
+					
+					// Turn off the LED
+					PORTC.OUTSET |= PIN1_bm;
 				}				
 
 				break;
