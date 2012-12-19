@@ -9,7 +9,7 @@
 #include <util/delay.h>
 
 
-#define LCD_POWER PORTC.IN & PIN2_bm
+#define LCD_POWER (PORTC.IN & PIN2_bm)
 
 // Use USARTD0 for communication, PD2 is Rx, PD3 is Tx
 void USARTD0_init(void);
