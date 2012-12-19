@@ -3,6 +3,7 @@
 
 #include <avr/eeprom.h>
 
+
 // Store the address of the last data point written in EEPROM 0x0000
 // This is two bytes wide so takes up 0x0000-0x0001
 #define EEPROM_LAST_DATA EEPROM_START

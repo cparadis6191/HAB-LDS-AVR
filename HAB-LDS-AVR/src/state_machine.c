@@ -1,5 +1,6 @@
 #include "state_machine.h"
 
+
 // Peripheral streams to print to
 static FILE LCD_STREAM = FDEV_SETUP_STREAM(USARTD0_putchar, USARTD0_getchar, _FDEV_SETUP_RW);
 static FILE PC_STREAM = FDEV_SETUP_STREAM(USARTD1_putchar, USARTD1_getchar, _FDEV_SETUP_RW);
@@ -11,21 +12,21 @@ void state_machine(void) {
 	// Variable to hold the last location of data in EEPROM
 	int MEM_LOC = eeprom_read_word((void *) EEPROM_LAST_DATA);
 	int POLLING_INT = eeprom_read_byte((void *) EEPROM_POLLING_INTERVAL);
-	
+
 
 	while (1) {
 		switch (ST_STATE) {
 			// Initialization state
 			// Go to the idle state after initialization
 			case ST_INIT:
-				// Initialize the clocks				
+				// Initialize the clocks
 				// Initialize the main clock
 				clock_32MHz_init();
 				// Initialize the real-time clock
 				clock_32kHz_init();
 				// Initialize DFLL to calibrate the 32MHz clock off of the 32kHz clock
 				clock_DFLL_init();
-				
+
 				// Initialize communication to the LCD
 				USARTD0_init();
 				// Initialize communication to the PC
@@ -52,6 +53,7 @@ void state_machine(void) {
 
 				break;
 
+
 			case ST_IDLE:
 				// If the jumper is removed,
 				if (!JUMPER_ON) {
@@ -61,7 +63,7 @@ void state_machine(void) {
 				} else if (PC_POWER) {
 					ST_STATE = ST_PC_INIT_COMM;
 				}
-			
+
 				break;
 
 
@@ -77,11 +79,12 @@ void state_machine(void) {
 				g_ADC_CH0_COMPLETE = 0;
 				g_ADC_CH1_COMPLETE = 0;
 				g_ADC_RECORD_FLAG = 0;
-				
+
 				// After things are initialized
 				ST_STATE = ST_POLLING;
 
 				break;
+
 
 			case ST_POLLING:
 				{
@@ -135,7 +138,6 @@ void state_machine(void) {
 							// Write to EEPROM and store the address of the latest angle
 							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
 
-
 							// Toggle the LED
 							PORTC.OUTTGL |= PIN1_bm;
 						}
@@ -157,10 +159,10 @@ void state_machine(void) {
 				if (JUMPER_ON) {
 					// If the jumper is on, stop polling
 					ST_STATE = ST_POLLING_DONE;
-					
+
 					// Turn off the LED
 					PORTC.OUTSET |= PIN1_bm;
-				}				
+				}
 
 				break;
 
@@ -168,84 +170,97 @@ void state_machine(void) {
 			case ST_POLLING_DONE:
 				// Return to the idle state after pin is added back
 				ST_STATE = ST_IDLE;
-				
+
 				break;
 
 
 			case ST_PC_INIT_COMM:
 				{
 					int pc_byte = 0;
-					
-					// Wait for the PC_INIT byte
-					while (pc_byte != PC_INIT) {
+
+					pc_byte = fgetc(&PC_STREAM);
+
+					// Check for the PC_INIT byte
+					if (pc_byte != PC_INIT) {
 						if (pc_byte == -1) {
 							// If error is returned, break out of the state
 							ST_STATE = ST_PC_DISCONNECT;
-							
+
 							break;
 						}
-					} 
+					}
 
 					// Send the acknowledgment
 					fputc(AVR_ACK, &PC_STREAM);
 
 					// Go to the ST_PC_CONNECTED state after initialization
 					ST_STATE = ST_PC_CONNECTED;
-					
+
 					break;
-				}					
+				}
 
 
 			case ST_PC_CONNECTED:
-				// Get a command from the PC
-				switch(fgetc(&PC_STREAM)) {
-					case PC_DATA_REQUEST:
-						// Transmit data until the end of EEPROM or until the end of recorded memory
-						for (int i = EEPROM_DATA_START; i < MEM_LOC; i += 2) {
-							fprintf(&PC_STREAM, "%.1f\n", (int) eeprom_read_word((void *) i)/10.0);
+				{
+					int pc_byte = 0;
 
-							// Toggle the LED
-							PORTC.OUTTGL |= PIN1_bm;
-						}
+					// Execute whatever command
+					switch(pc_byte = fgetc(&PC_STREAM)) {
+						case PC_DATA_REQUEST:
+							// Transmit data until the end of EEPROM or until the end of recorded memory
+							for (int i = EEPROM_DATA_START; i < MEM_LOC; i += 2) {
+								fprintf(&PC_STREAM, "%.1f\n", (int) eeprom_read_word((void *) i)/10.0);
 
-						// Turn off the LED
-						PORTC.OUTSET |= PIN1_bm;
+								// Toggle the LED
+								PORTC.OUTTGL |= PIN1_bm;
+							}
 
-						// Send end of data signal
-						fputc(AVR_DATA_END, &PC_STREAM);
+							// Turn off the LED
+							PORTC.OUTSET |= PIN1_bm;
 
-						break;
+							// Send end of data signal
+							fputc(AVR_DATA_END, &PC_STREAM);
 
-
-					case PC_POLLING_INTERVAL:
-						// Get the polling interval from the PC
-						POLLING_INT = fgetc(&PC_STREAM);
-
-						// Store the polling interval to EEPROM
-						eeprom_write_byte((void *) EEPROM_POLLING_INTERVAL, POLLING_INT);
-
-						// Print the polling interval to the second line of the LCD
-						lcd_cursor_set(0, 1);
-						fprintf(&LCD_STREAM, "Polling: %i sec", POLLING_INT);
-
-						break;
+							break;
 
 
-					case PC_ERASE_DATA:
-						// Reset the EEPROM location to 4
-						MEM_LOC = EEPROM_DATA_START;
+						case PC_POLLING_INTERVAL:
+							// Get the polling interval from the PC
+							POLLING_INT = fgetc(&PC_STREAM);
 
-						// Write it to EEPROM
-						eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
+							// Check for an error
+							if ((POLLING_INT <= 0) || (POLLING_INT > 30)) {
 
-						break;
+								break;
+							}
+
+							// Store the polling interval to EEPROM
+							eeprom_write_byte((void *) EEPROM_POLLING_INTERVAL, POLLING_INT);
+
+							// Print the polling interval to the second line of the LCD
+							lcd_cursor_set(0, 1);
+							fprintf(&LCD_STREAM, "Polling: %i sec", POLLING_INT);
+
+							break;
 
 
-					default:
+						case PC_ERASE_DATA:
+							// Reset the EEPROM location to 4
+							MEM_LOC = EEPROM_DATA_START;
 
-						break;
+							// Write it to EEPROM
+							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
+
+							break;
+
+
+						default:
+							// If error is returned or unknown character is received, break out of the state
+
+							break;
+					}
 				}
-				
+
 				// Exit the PC communication state machine
 				ST_STATE = ST_PC_DISCONNECT;
 
@@ -255,10 +270,10 @@ void state_machine(void) {
 			case ST_PC_DISCONNECT:
 
 				ST_STATE = ST_IDLE;
-			
+
 				break;
-				
-				
+
+
 			default:
 
 				break;
@@ -338,7 +353,7 @@ double resolve_angle(int *sensor_results) {
 
 	double interm_x = 0;
 	double interm_y = 0;
-	
+
 	for (int i = 0; i < 5; i++) {
 		// For each sensor, subtract opposite sensor and determine x/y-components
 		interm_x += sensor_x_coeff[i]*(sensor_results[i] - sensor_results[i + 5]);

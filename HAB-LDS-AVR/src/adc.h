@@ -8,6 +8,7 @@
 
 #include "globals.h"
 
+
 // ADC initialization functions
 void adc_init(void);
 

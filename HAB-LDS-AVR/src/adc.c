@@ -1,5 +1,6 @@
 #include "adc.h"
 
+
 void adc_init(void) {
 	// Set the resolution of the ADC to be 12-bit, right-adjusted
 	// Unsigned by default
@@ -20,6 +21,7 @@ void adc_init(void) {
 	// Enable the Analog-to-Digital converter
 	ADCA.CTRLA = ADC_ENABLE_bm;
 
+
 	return;
 }
 
@@ -28,6 +30,7 @@ void adc_channel_init(void) {
 	ADCA.CH0.CTRL = (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	ADCA.CH1.CTRL = (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc);
 	
+	
 	return;
 }
 
@@ -35,6 +38,7 @@ void adc_interrupt_init(void) {
 	// Set ADC CH0 to trigger a low-level interrupt when a conversion completes
 	ADCA.CH0.INTCTRL = (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
 	ADCA.CH1.INTCTRL = (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc);
+	
 	
 	return;
 }
@@ -48,6 +52,7 @@ void adc_start(int channel_0_pin, int channel_1_pin) {
 	// Start a conversion on both channels
 	ADCA.CH0.CTRL |= ADC_CH_START_bm;
 	ADCA.CH1.CTRL |= ADC_CH_START_bm;
+
 
 	return;
 }
@@ -72,6 +77,7 @@ void adc_timer_init(int t) {
 	// Set the counter to 0
 	RTC.CNT = 0;
 
+
 	return;
 }
 
@@ -84,6 +90,7 @@ ISR(ADCA_CH0_vect) {
 
 	// Mark the conversion as complete
 	g_ADC_CH0_COMPLETE = 1;
+	
 	
 	return;
 }
@@ -98,6 +105,7 @@ ISR(ADCA_CH1_vect) {
 	// Mark the conversion as complete
 	g_ADC_CH1_COMPLETE = 1;
 	
+	
 	return;
 }
 
@@ -105,6 +113,7 @@ ISR(ADCA_CH1_vect) {
 ISR(RTC_OVF_vect) {
 	// After t seconds, record and display the data
 	g_ADC_RECORD_FLAG = 1;
+
 
 	return;
 }
@@ -118,6 +127,7 @@ uint8_t adc_read_calibration_byte(uint8_t address) {
 
 	// Clean up NVM Command register
 	NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+
 
 	return result;
 }

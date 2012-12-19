@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <avr/io.h>
 
+
+// Pin the FT232 chip is connected to
 #define PC_POWER (PORTC.IN & PIN2_bm)
 
 // PC starts by sending an initialization byte

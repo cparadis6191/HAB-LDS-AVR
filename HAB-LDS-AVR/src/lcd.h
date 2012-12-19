@@ -1,12 +1,13 @@
 #ifndef __LCD_USART_H_
 #define __LCD_USART_H_
 
-#include "globals.h"
-#include "lcd_library.h"
-
 #include <stdio.h>
 #include <avr/io.h>
+
+#include "globals.h"
+#include "lcd_library.h"
 #include <util/delay.h>
+
 
 #define LCD_POWER PORTC.IN & PIN2_bm
 
