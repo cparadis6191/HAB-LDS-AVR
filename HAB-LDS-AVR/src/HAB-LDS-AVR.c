@@ -39,7 +39,7 @@ int main(void) {
 				lcd_init();
 
 				// Initialize the jumper
-				input_init();
+				input_io();
 				// Initialize the logic to determine when the FT232 chip is connected to a PC
 				pc_interface_init();
 
@@ -309,7 +309,7 @@ void main_interrupts_init(void) {
 }
 
 
-void input_init(void) {
+void input_io(void) {
 	// Set the jumper pin as an input
 	PORTC.DIRCLR |= PIN0_bm;
 	// Set PC0 to pulldown and sense rising edge signals
