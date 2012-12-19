@@ -88,59 +88,25 @@ int main(void) {
 
 			case ST_POLLING:
 				{
-					int sensor_results[10];
+					int sensor_readings[10];
 					double current_angle;
 
 					// Pin numbers for channel 0 and channel 1
-					// Channel 0 takes care of the first 5 sensors
-					// Channel 1 takes care of the second 5 sensors
+					// ADC virtual channel 0 takes care of the first 5 sensors
+					// ADC virtual channel 1 takes care of the second 5 sensors
 					// Pin 6 is broken and won't work properly, so Pin 11 is used instead
 					int CH0_pin_num[5] = {1, 2, 3, 4, 5};
 					int CH1_pin_num[5] = {11, 7, 8, 9, 10};
 
 					// Write the recorded angle to memory
 					if (g_ADC_RECORD_FLAG) {
-						// Iterate through each sensor and record data
-						// Use two channels to get data from
-						// Start at 1 because PA0 is a reference
-						for (int sensor_index = 1; sensor_index <= 5; sensor_index++) {
-								sensor_results[sensor_index - 1] = 0;
-								sensor_results[sensor_index + 5 - 1] = 0;
+						adc_poll_sensors(sensor_readings, CH0_pin_num, CH1_pin_num);
+						current_angle = resolve_angle(sensor_readings);
+						storage_write_angle(current_angle, &MEM_LOC);
+						
 
-							// Do four conversions and average the results
-							for (int sensor_sum_num = 0; sensor_sum_num < 50; sensor_sum_num++) {
-								// Starts a conversion on index n and n + 5
-								adc_start(CH0_pin_num[sensor_index - 1], CH1_pin_num[sensor_index - 1]);
-
-								// Wait until the ISRs handle each ADC channel
-								if ((g_ADC_CH0_COMPLETE && g_ADC_CH1_COMPLETE)) {
-									// Reset the conversion complete flags
-									g_ADC_CH0_COMPLETE = 0;
-									g_ADC_CH1_COMPLETE = 0;
-
-									// Sum the results
-									sensor_results[sensor_index - 1] += (g_ADC_CH0_RESULT)/50.0;
-									sensor_results[sensor_index + 5 - 1] += (g_ADC_CH1_RESULT)/50.0;
-								}
-							}
-						}
-
-						current_angle = resolve_angle(sensor_results);
-
-						if (MEM_LOC <= (EEPROM_END - 3)) {
-							// Write the data to EEPROM
-							// Multiply by ten and store the result as an int so we can use only two bytes of storage
-							eeprom_write_word((void *) MEM_LOC, (int) (current_angle*10));
-
-							// Increment to point to the next data point
-							MEM_LOC += 2;
-
-							// Write to EEPROM and store the address of the latest angle
-							eeprom_write_word((void *) EEPROM_LAST_DATA, MEM_LOC);
-
-							// Toggle the LED
-							PORTC.OUTTGL |= PIN1_bm;
-						}
+						// Toggle the LED
+						PORTC.OUTTGL |= PIN1_bm;
 
 						// Print the latest polled angle
 						lcd_clear_display();
@@ -359,7 +325,7 @@ void input_init(void) {
 
 
 // Pass in a pointer to an array of length 10
-double resolve_angle(int *sensor_results) {
+double resolve_angle(int *sensor_readings) {
 	// Arrays holding the sensor x/y-component magnitudes
 	// Values calculated with Matlab cos(pi/180*(0:4)*36) and sin(pi/180*(0:4)*36)
 	const double sensor_x_coeff[5] = {1.0, 0.8090, 0.3090, -0.3090, -0.8090};
@@ -370,8 +336,8 @@ double resolve_angle(int *sensor_results) {
 
 	for (int i = 0; i < 5; i++) {
 		// For each sensor, subtract opposite sensor and determine x/y-components
-		interm_x += sensor_x_coeff[i]*(sensor_results[i] - sensor_results[i + 5]);
-		interm_y += sensor_y_coeff[i]*(sensor_results[i] - sensor_results[i + 5]);
+		interm_x += sensor_x_coeff[i]*(sensor_readings[i] - sensor_readings[i + 5]);
+		interm_y += sensor_y_coeff[i]*(sensor_readings[i] - sensor_readings[i + 5]);
 	}
 
 

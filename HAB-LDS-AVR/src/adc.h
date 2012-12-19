@@ -27,6 +27,8 @@ void adc_start(int channel_0_pin, int channel_1_pin);
 // Used to retrieve factory calibration byte for the ADC
 uint8_t adc_read_calibration_byte(uint8_t address);
 
+// Pass in an array, this fills the array with ADC readings
+void adc_poll_sensors(int* sensor_readings, int* CH0_pin_num, int* CH1_pin_num);
 
 // Global variables and flags redeclared to be used in ADC code
 volatile int g_ADC_RECORD_FLAG;

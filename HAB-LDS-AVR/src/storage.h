@@ -12,8 +12,9 @@
 #define EEPROM_POLLING_INTERVAL (EEPROM_START + 2)
 
 // EEPROM 0x0003 is not used currently
-
 // Start data at EEPROM 0x0004
 #define EEPROM_DATA_START (EEPROM_START + 4)
+
+void storage_write_angle(double resolved_angle, int* memory_location);
 
 #endif

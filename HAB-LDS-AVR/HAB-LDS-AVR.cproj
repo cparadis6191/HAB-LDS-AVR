@@ -150,10 +150,10 @@
     <Compile Include="src\sd.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\storage.h">
+    <Compile Include="src\storage.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\state_machine.c">
+    <Compile Include="src\storage.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\state_machine.h">
