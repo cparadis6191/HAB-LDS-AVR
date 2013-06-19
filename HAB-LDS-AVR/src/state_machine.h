@@ -3,7 +3,7 @@
 
 
 // Enumerated states
-enum {	ST_NULL = 0,
+enum {	ST_NULL,
 		ST_INIT,
 		ST_IDLE,
 
